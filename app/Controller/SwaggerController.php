@@ -17,7 +17,7 @@ class SwaggerController
     #[RequestMapping(path: 'index', methods: 'get')]
     public function index(RequestInterface $request, ResponseInterface $response)
     {
-        $openapi = Generator::scan(['App']);
+        $openapi = Generator::scan(["app"]);
 
         header('Content-Type: application/x-yaml');
         return $response->raw($openapi->toYaml());
