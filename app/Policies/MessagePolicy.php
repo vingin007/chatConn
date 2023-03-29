@@ -12,11 +12,9 @@ namespace App\Policies;
 
 use App\Model\Message;
 use HyperfExtension\Auth\Access\HandlesAuthorization;
-use HyperfExtension\Auth\Annotations\Policy;
 use App\Model\User;
 use HyperfExtension\Auth\Exceptions\AuthorizationException;
 
-#[Policy(Message::class)]
 class MessagePolicy
 {
     use HandlesAuthorization;

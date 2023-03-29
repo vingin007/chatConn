@@ -15,9 +15,6 @@ use HyperfExtension\Auth\Access\Response;
 use App\Model\User;
 use app\Model\Chat;
 
-/**
- * @Policy({\app\Model\Chat::class})
- */
 class ChatPolicy
 {
     use HandlesAuthorization;
