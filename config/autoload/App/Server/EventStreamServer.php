@@ -6,12 +6,14 @@ use App\Event\TextMessageSend;
 use App\Model\Chat;
 use App\Model\Message;
 use App\Model\User;
+use App\Service\ChatRecordService;
 use App\Service\OpenaiService;
 use Hhxsv5\SSE\Event;
 use Hhxsv5\SSE\SSESwoole;
 use Hhxsv5\SSE\StopSSEException;
 use Hyperf\Context\Context;
 use Hyperf\Di\Annotation\Inject;
+use Hyperf\Event\EventDispatcher;
 use Hyperf\Utils\ApplicationContext;
 use HyperfExtension\Auth\AuthManager;
 use HyperfExtension\Jwt\JwtFactory;
@@ -24,6 +26,12 @@ use Swoole\Http\Response;
 class EventStreamServer
 {
     private AuthManager $authManager;
+
+    #[Inject]
+    private ChatRecordService $chatRecordService;
+    #[Inject]
+    private EventDispatcher $eventDispatcher;
+
     public function __construct()
     {
         $container = ApplicationContext::getContainer();
@@ -32,8 +40,9 @@ class EventStreamServer
     /**
      * @OA\Get(
      *     path="/event_stream",
-     *     summary="消息发送成功后，用消息id请求这个接口，获取机器人回复，回复以event stream的形式返回，前端需要监听这个接口，收到event为done的时候关闭长链接",
-     *     tags={"Your tag"},
+     *     summary="接受消息长链接"
+     *     description="消息发送成功后，用消息id请求这个接口，获取机器人回复，回复以event stream的形式返回，前端需要监听这个接口，收到event为done的时候关闭长链接",
+     *     tags={"Message"},
      *     description="Your description",
      * )
      */
@@ -54,6 +63,8 @@ class EventStreamServer
         $jwt = make(JwtFactory::class)->make();
         $user = $this->authManager->guard('mini')->getProvider()->retrieveByCredentials(['id' => $jwt->getClaim('sub')]);
         $text = $openaiService->text(['role' => 'user', 'content' => $message->content],$user, $chat,3000);
+        $result = $this->chatRecordService->addChatLog($user, $chat, $text, 'text', '', '', false);
+        $this->eventDispatcher->dispatch(new TextMessageSend($user));
         // 将文本拆分为 5 个字符的数组
         $chunks = str_split($text, 5);
 
