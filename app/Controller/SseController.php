@@ -36,14 +36,6 @@ use Psr\Container\NotFoundExceptionInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
 use OpenApi\Annotations as OA;
 
-/**
- * @OA\Info(
- *     title="API Title",
- *     version="1.0.0",
- *     description="API description"
- * )
- */
-
 #[Controller]
 class SseController
 {
