@@ -29,7 +29,14 @@ class EventStreamServer
         $container = ApplicationContext::getContainer();
         $this->authManager = new AuthManager($container);
     }
-
+    /**
+     * @OA\Get(
+     *     path="/event_stream",
+     *     summary="消息发送成功后，用消息id请求这个接口，获取机器人回复，回复以event stream的形式返回，前端需要监听这个接口，收到event为done的时候关闭长链接",
+     *     tags={"Your tag"},
+     *     description="Your description",
+     * )
+     */
     public function OnRequest(Request $request, Response $response){
         $openaiService = new OpenaiService();
         $response->header('Access-Control-Allow-Origin', '*');
