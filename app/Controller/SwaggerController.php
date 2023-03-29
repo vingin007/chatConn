@@ -1,7 +1,6 @@
 <?php
 
 declare(strict_types=1);
-
 namespace App\Controller;
 
 use App\Traits\ApiResponseTrait;
@@ -18,7 +17,7 @@ class SwaggerController
     #[RequestMapping(path: 'index', methods: 'get')]
     public function index(RequestInterface $request, ResponseInterface $response)
     {
-        $openapi = Generator::scan(['App\\Controller', 'App\\Model']);
+        $openapi = Generator::scan(['App']);
 
         header('Content-Type: application/x-yaml');
         return $response->raw($openapi->toYaml());
