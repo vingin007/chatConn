@@ -136,6 +136,6 @@ return [
     */
 
     'policies' => [
-       App\Model\Message::class => App\Policies\MessagePolicy::class
+
     ],
 ];

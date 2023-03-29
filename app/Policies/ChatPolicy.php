@@ -12,7 +12,6 @@ namespace App\Policies;
 
 use HyperfExtension\Auth\Access\HandlesAuthorization;
 use HyperfExtension\Auth\Access\Response;
-use HyperfExtension\Auth\Annotations\Policy;
 use App\Model\User;
 use app\Model\Chat;
 
