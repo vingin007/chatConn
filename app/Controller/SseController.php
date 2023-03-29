@@ -3,7 +3,6 @@
 declare(strict_types=1);
 namespace App\Controller;
 
-use App\Event\TextMessageSend;
 use App\Exception\BusinessException;
 use App\Middleware\Auth\RefreshTokenMiddleware;
 use App\Model\Chat;
@@ -124,15 +123,12 @@ class SseController
             }else{
                 $message = $this->chatRecordService->addChatLog($user, $chat, $content, 'text', '', '', true);
             }
-            $return = $openaiService->text(['role' => 'user', 'content' => $message->content],$user, $chat,3000);
-            $result = $this->chatRecordService->addChatLog($user, $chat, $return, 'text', '', '', false);
-            $this->eventDispatcher->dispatch(new TextMessageSend($user));
             Db::commit();
         }catch (GuzzleException|ModelNotFoundException|NotFoundExceptionInterface|ContainerExceptionInterface $exception){
             Db::rollBack();
            return $this->fail($exception->getMessage());
         }
-        return $result;
+        return $message;
     }
     /**
      * @OA\Post(
@@ -195,11 +191,6 @@ class SseController
     #[Middlewares([RefreshTokenMiddleware::class])]
     public function audio(RequestInterface $request, ResponseInterface $response)
     {
-        try {
-            $this->authorize("update", Message::class);
-        } catch (AuthorizationException $e) {
-            return $this->fail($e->getMessage());
-        }
         $chatId = $request->input('chat_id', '');
         $messageId = $request->input('message_id', '');
         $user = $this->auth->guard('mini')->user();
@@ -276,11 +267,6 @@ class SseController
     #[RequestMapping(path: 'upload_audio',methods: 'post')]
     public function uploadAudio(RequestInterface $request)
     {
-        try {
-            $this->authorize("update", Message::class);
-        } catch (AuthorizationException $e) {
-            return $this->fail($e->getMessage());
-        }
         $file = $request->file('audio');
         $chatId = $request->input('chat_id', '');
         $chat = Chat::query()->findOrFail($chatId);
@@ -327,11 +313,6 @@ class SseController
     #[RequestMapping(path: 'getaudio',methods: 'get')]
     public function getaudio(RequestInterface $request, ResponseInterface $response,GcsService $gcsService)
     {
-        try {
-            $this->authorize("view", Message::class);
-        } catch (AuthorizationException $e) {
-            return $this->fail($e->getMessage());
-        }
         $filename = $request->input('filename');
         $audioString = $gcsService->get($filename);
         return $this->success($audioString);

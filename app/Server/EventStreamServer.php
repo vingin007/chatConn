@@ -5,7 +5,6 @@ namespace App\Server;
 use App\Event\TextMessageSend;
 use App\Model\Chat;
 use App\Model\Message;
-use App\Model\User;
 use App\Service\ChatRecordService;
 use App\Service\OpenaiService;
 use Hhxsv5\SSE\Event;
@@ -17,9 +16,7 @@ use Hyperf\Event\EventDispatcher;
 use Hyperf\Utils\ApplicationContext;
 use HyperfExtension\Auth\AuthManager;
 use HyperfExtension\Jwt\JwtFactory;
-use phpseclib3\File\ASN1\Maps\Certificate;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Log\LoggerInterface;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
 

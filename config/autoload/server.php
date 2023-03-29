@@ -9,6 +9,7 @@ declare(strict_types=1);
  * @contact  group@hyperf.io
  * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
  */
+
 use Hyperf\Server\Event;
 use Hyperf\Server\Server;
 use Swoole\Constant;
@@ -33,7 +34,7 @@ return [
             'port' => 9511,
             'sock_type' => SWOOLE_SOCK_TCP,
             'callbacks' => [
-                Event::ON_REQUEST => [\App\Server\EventStreamServer::class, 'onRequest'],
+                Event::ON_REQUEST => [App\Server\EventStreamServer::class, 'onRequest'],
             ],
         ],
     ],
