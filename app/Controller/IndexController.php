@@ -13,6 +13,6 @@ class IndexController
 {
     public function index(RequestInterface $request, ResponseInterface $response)
     {
-
+        return $response->raw('Hello Hyperf!');
     }
 }
