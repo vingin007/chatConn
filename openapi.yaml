@@ -1,0 +1,171 @@
+openapi: 3.0.0
+info:
+  title: 'API Title'
+  description: 'API description'
+  version: 1.0.0
+paths:
+  /text:
+    post:
+      tags:
+        - Message
+      summary: 发送文本消息
+      description: 在指定的聊天中发送文本消息
+      operationId: text
+      requestBody:
+        description: 请求体
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                message:
+                  description: 消息内容
+                  type: string
+                audio:
+                  description: 上传的音频文件
+                  type: string
+                  format: binary
+                chat_id:
+                  description: '聊天 ID'
+                  type: integer
+              type: object
+      responses:
+        '200':
+          description: 返回消息实体
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '401':
+          description: 用户未认证
+        '403':
+          description: 用户没有权限访问该资源
+        '404':
+          description: 指定的聊天不存在
+        '422':
+          description: 请求参数验证失败
+        '500':
+          description: 服务器内部错误
+  /audio:
+    post:
+      tags:
+        - Message
+      summary: 上传音频文件并发送消息
+      description: 上传音频文件并将其转化为文本发送到指定的聊天中
+      operationId: audio
+      requestBody:
+        description: 请求体
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                chat_id:
+                  description: '聊天 ID'
+                  type: integer
+                message_id:
+                  description: '消息 ID'
+                  type: integer
+              type: object
+      responses:
+        '200':
+          description: '返回 objectName'
+          content:
+            application/json:
+              schema:
+                properties:
+                  objectName: { description: 音频文件对象名, type: string }
+                type: object
+        '401':
+          description: 用户未认证
+        '403':
+          description: 用户没有权限访问该资源
+        '404':
+          description: 指定的聊天或消息不存在
+        '422':
+          description: 请求参数验证失败
+        '500':
+          description: 服务器内部错误
+  /audio/upload:
+    post:
+      tags:
+        - Audio
+      summary: 'Uploads an audio file for a chat.'
+      description: 'Uploads an audio file for a chat specified by chat ID.'
+      operationId: uploadAudio
+      requestBody:
+        description: 'The audio file to upload.'
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              required:
+                - audio
+              properties:
+                audio:
+                  description: 'The audio file to upload.'
+                  type: string
+                  format: binary
+                chat_id:
+                  description: 'The ID of the chat the audio file belongs to.'
+                  type: integer
+              type: object
+      responses:
+        '200':
+          description: 'The uploaded audio file details.'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+        '401':
+          description: 'Unauthorized. The user must be logged in to upload an audio file.'
+        '403':
+          description: 'Forbidden. The user does not have permission to upload an audio file.'
+        '404':
+          description: 'Not Found. The specified chat does not exist.'
+        '422':
+          description: 'Unprocessable Entity. The request body is missing required fields.'
+        '500':
+          description: 'Internal Server Error. An error occurred while processing the request.'
+components:
+  schemas:
+    Message:
+      description: 'A Message object'
+      properties:
+        id:
+          description: 'The ID of the message'
+          type: integer
+        user_id:
+          description: 'The ID of the user'
+          type: integer
+        chat_id:
+          description: 'The ID of the chat'
+          type: integer
+        is_user:
+          description: 'Whether the message is from a user'
+          type: boolean
+        type:
+          description: 'The type of the message'
+          type: string
+          enum:
+            - text
+            - image
+            - audio
+        store_name:
+          description: 'The name of the file stored on the server'
+          type: string
+        url:
+          description: 'The url of the file'
+          type: string
+        content:
+          description: 'The content of the message'
+          type: string
+        created_at:
+          description: 'The time the message was created'
+          type: string
+          format: date-time
+        updated_at:
+          description: 'The time the message was last updated'
+          type: string
+          format: date-time
+      type: object
