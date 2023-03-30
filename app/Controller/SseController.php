@@ -318,13 +318,28 @@ class SseController
         $audioString = $gcsService->get($filename);
         return $this->success($audioString);
     }
-
+    /**
+     * @OA\Post(
+     *     path="/record",
+     *     operationId="addChatRecord",
+     *     summary="添加聊天记录",
+     *     description="添加一条聊天记录，并返回新添加的记录信息。",
+     *     tags={"Message"},
+     *     security={{"bearerAuth":{}}},
+     *     requestBody={"$ref": "#/components/requestBodies/AddChatRecordRequestBody"},
+     *     @OA\Response(response=200, description="成功", @OA\JsonContent(ref="#/components/schemas/ChatRecord")),
+     *     @OA\Response(response=400, description="请求参数错误", @OA\JsonContent(ref="#/components/schemas/ApiError")),
+     *     @OA\Response(response=401, description="用户未认证或认证失败", @OA\JsonContent(ref="#/components/schemas/ApiError")),
+     *     @OA\Response(response=404, description="聊天记录不存在", @OA\JsonContent(ref="#/components/schemas/ApiError")),
+     *     @OA\Response(response=500, description="服务器内部错误", @OA\JsonContent(ref="#/components/schemas/ApiError"))
+     * )
+     */
     public function record(RequestInterface $request, ResponseInterface $response)
     {
-        $message = Message::query()->findOrFail($request->input('message_id'));
-        $chat = Chat::query()->findOrFail($message->chat_id);
+        $message = $request->input('message');
+        $chat = Chat::query()->findOrFail($request->input('chat_id'));
         $user = $this->auth->guard('mini')->user();
-        $result = $this->chatRecordService->addChatLog($user, $chat, $message->content, 'text', '', '', false);
+        $result = $this->chatRecordService->addChatLog($user, $chat, $message, 'text', '', '', false);
         $this->eventDispatcher->dispatch(new TextMessageSend($user));
         return $this->success($result);
     }

@@ -20,7 +20,7 @@ use HyperfExtension\Jwt\JwtFactory;
 use Psr\Http\Message\ServerRequestInterface;
 use Swoole\Http\Request;
 use Swoole\Http\Response;
-
+use openapi\Annotations as OA;
 class EventStreamServer
 {
     private AuthManager $authManager;
