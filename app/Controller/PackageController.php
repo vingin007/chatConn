@@ -10,6 +10,7 @@ use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\Middleware;
 use Hyperf\HttpServer\Annotation\Middlewares;
 use Hyperf\HttpServer\Annotation\RequestMapping;
+use Hyperf\HttpServer\Contract\RequestInterface;
 use OpenApi\Annotations as OA;
 #[Controller]
 #[Middlewares([RefreshTokenMiddleware::class])]
@@ -41,7 +42,7 @@ class PackageController
      * )
      */
     #[RequestMapping(path: 'lists',methods: 'get')]
-    public function getAllPackages()
+    public function getAllPackages(RequestInterface $request)
     {
         return $this->packageService->getAll();
     }

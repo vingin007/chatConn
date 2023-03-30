@@ -10,6 +10,7 @@ use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\Middlewares;
 use Hyperf\HttpServer\Annotation\RequestMapping;
+use Hyperf\HttpServer\Contract\RequestInterface;
 use HyperfExtension\Auth\AuthManager;
 #[Controller]
 #[Middlewares([RefreshTokenMiddleware::class])]
@@ -58,9 +59,9 @@ class OrderController extends AbstractController
      * )
      */
     #[RequestMapping(path: 'create', methods: 'post')]
-    public function createOrder()
+    public function createOrder(RequestInterface $request)
     {
-        $packageId = $this->request->input('package_id');
+        $packageId = $request->input('package_id');
         try {
             $package = Package::findOrFail($packageId);
             $order = $this->orderService->generateOrder($package, $this->user);
@@ -101,9 +102,9 @@ class OrderController extends AbstractController
      * )
      */
     #[RequestMapping(path: 'cancel', methods: 'post')]
-    public function cancelOrder()
+    public function cancelOrder(RequestInterface $request)
     {
-        $orderNo = $this->request->input('order_no');
+        $orderNo = $request->input('order_no');
 
         try {
             $order = $this->orderService->cancelOrder($orderNo,$this->user);
