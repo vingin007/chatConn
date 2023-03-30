@@ -215,6 +215,8 @@ class SseController
             return $this->fail($e->getMessage());
         }catch (RateLimitException $exception) {
             return $this->fail('发送通道拥挤，请等一秒', 422);
+        }catch (ModelNotFoundException $exception){
+            return $this->fail('指定的聊天或消息不存在', 404);
         }
         return $this->success($objectName);
     }
@@ -281,13 +283,15 @@ class SseController
     {
         $file = $request->file('audio');
         $chatId = $request->input('chat_id', '');
-        $chat = Chat::query()->findOrFail($chatId);
         $user = $this->auth->guard('mini')->user();
         //上传到服务器
         try {
+            $chat = Chat::query()->findOrFail($chatId);
             $message = $this->audioService->upload($user, $chat, $file);
         } catch (FilesystemException|RuntimeException|InvalidArgumentException|BusinessException $e) {
             return $this->fail($e->getMessage());
+        }catch (ModelNotFoundException $exception){
+            return $this->fail('指定的聊天不存在', 404);
         }
         return $message;
     }
@@ -350,10 +354,14 @@ class SseController
     public function record(RequestInterface $request, ResponseInterface $response)
     {
         $message = $request->input('message');
-        $chat = Chat::query()->findOrFail($request->input('chat_id'));
-        $user = $this->auth->guard('mini')->user();
-        $result = $this->chatRecordService->addChatLog($user, $chat, $message, 'text', '', '', false);
-        $this->eventDispatcher->dispatch(new TextMessageSend($user));
+        try {
+            $chat = Chat::query()->findOrFail($request->input('chat_id'));
+            $user = $this->auth->guard('mini')->user();
+            $result = $this->chatRecordService->addChatLog($user, $chat, $message, 'text', '', '', false);
+            $this->eventDispatcher->dispatch(new TextMessageSend($user));
+        }catch (ModelNotFoundException $exception) {
+            return $this->fail('指定的聊天不存在', 404);
+        }
         return $this->success($result);
     }
 }

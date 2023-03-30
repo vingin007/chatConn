@@ -6,6 +6,7 @@ use App\Middleware\Auth\RefreshTokenMiddleware;
 use App\Model\Package;
 use App\Service\OrderService;
 use App\Traits\ApiResponseTrait;
+use Hyperf\Database\Model\ModelNotFoundException;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\Middlewares;
@@ -65,7 +66,7 @@ class OrderController extends AbstractController
         try {
             $package = Package::findOrFail($packageId);
             $order = $this->orderService->generateOrder($package, $this->user);
-        } catch (BusinessException $e) {
+        } catch (BusinessException|ModelNotFoundException $e) {
             return $this->fail($e->getErrorCode(),$e->getErrorMessage());
         }
 
@@ -108,7 +109,7 @@ class OrderController extends AbstractController
 
         try {
             $order = $this->orderService->cancelOrder($orderNo,$this->user);
-        } catch (BusinessException $e) {
+        } catch (BusinessException|ModelNotFoundException $e) {
             return $this->fail($e->getErrorCode(),$e->getErrorMessage());
         }
 
