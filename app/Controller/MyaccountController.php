@@ -22,6 +22,7 @@ use Overtrue\EasySms\Exceptions\NoGatewayAvailableException;
 use OpenApi\Annotations as OA;
 
 #[Controller]
+#[Middlewares(RefreshTokenMiddleware::class)]
 class MyaccountController
 {
     use ApiResponseTrait;

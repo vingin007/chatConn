@@ -3,15 +3,18 @@
 declare(strict_types=1);
 namespace App\Controller;
 
+use App\Middleware\Auth\RefreshTokenMiddleware;
 use App\Service\OpenaiService;
 use App\Traits\ApiResponseTrait;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
+use Hyperf\HttpServer\Annotation\Middlewares;
 use Hyperf\HttpServer\Annotation\RequestMapping;
 use Hyperf\HttpServer\Contract\RequestInterface;
 use Hyperf\HttpServer\Contract\ResponseInterface;
 use OpenApi\Annotations as OA;
 #[Controller]
+#[Middlewares(RefreshTokenMiddleware::class)]
 class ImageController
 {
     use ApiResponseTrait;

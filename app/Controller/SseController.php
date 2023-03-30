@@ -6,6 +6,7 @@ namespace App\Controller;
 use App\Event\TextMessageSend;
 use App\Exception\BusinessException;
 use App\Middleware\Auth\AdminAuthMiddleware;
+use App\Middleware\Auth\RefreshTokenMiddleware;
 use App\Model\Chat;
 use App\Model\Message;
 use App\Service\AudioService;
@@ -37,6 +38,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use OpenApi\Annotations as OA;
 
 #[Controller]
+#[Middlewares(RefreshTokenMiddleware::class)]
 class SseController
 {
     use AuthorizesRequests;

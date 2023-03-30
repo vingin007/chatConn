@@ -3,14 +3,16 @@
 namespace App\Controller;
 
 use App\Middleware\Auth\AdminAuthMiddleware;
+use App\Middleware\Auth\RefreshTokenMiddleware;
 use App\Service\PackageService;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\Middleware;
+use Hyperf\HttpServer\Annotation\Middlewares;
 use Hyperf\HttpServer\Annotation\RequestMapping;
 use OpenApi\Annotations as OA;
 #[Controller]
-#[Middleware(AdminAuthMiddleware::class)]
+#[Middlewares(RefreshTokenMiddleware::class)]
 class PackageController
 {
     #[Inject]

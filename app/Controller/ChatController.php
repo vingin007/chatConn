@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Middleware\Auth\AdminAuthMiddleware;
+use App\Middleware\Auth\RefreshTokenMiddleware;
 use App\Model\Chat;
 use App\Service\ChatService;
 use App\Traits\ApiResponseTrait;
@@ -34,7 +35,7 @@ use Psr\Http\Message\ResponseInterface;
  */
 
 #[Middlewares([
-    AdminAuthMiddleware::class,
+    RefreshTokenMiddleware::class,
 ])]
 #[Controller]
 class ChatController
