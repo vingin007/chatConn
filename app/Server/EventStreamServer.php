@@ -74,7 +74,7 @@ class EventStreamServer
             }
             return json_encode(compact('chunk'));
         }, 'answer');
-        (new SSESwoole($event, $request, $response))->start(0);
+        (new SSESwoole($event, $request, $response))->start(0.1);
     }
     private function convertRequest(Request $swooleRequest): \Hyperf\HttpMessage\Server\Request
     {
