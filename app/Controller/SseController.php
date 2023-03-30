@@ -333,10 +333,10 @@ class SseController
      *     security={{"bearerAuth":{}}},
      *     requestBody={"$ref": "#/components/requestBodies/AddChatRecordRequestBody"},
      *     @OA\Response(response=200, description="成功", @OA\JsonContent(ref="#/components/schemas/ChatRecord")),
-     *     @OA\Response(response=400, description="请求参数错误", @OA\JsonContent(ref="#/components/schemas/ApiError")),
-     *     @OA\Response(response=401, description="用户未认证或认证失败", @OA\JsonContent(ref="#/components/schemas/ApiError")),
-     *     @OA\Response(response=404, description="聊天记录不存在", @OA\JsonContent(ref="#/components/schemas/ApiError")),
-     *     @OA\Response(response=500, description="服务器内部错误", @OA\JsonContent(ref="#/components/schemas/ApiError"))
+     *     @OA\Response(response=400, description="请求参数错误"),
+     *     @OA\Response(response=401, description="用户未认证或认证失败"),
+     *     @OA\Response(response=404, description="聊天记录不存在"),
+     *     @OA\Response(response=500, description="服务器内部错误")
      * )
      */
     public function record(RequestInterface $request, ResponseInterface $response)
