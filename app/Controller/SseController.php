@@ -5,7 +5,7 @@ namespace App\Controller;
 
 use App\Event\TextMessageSend;
 use App\Exception\BusinessException;
-use App\Middleware\Auth\RefreshTokenMiddleware;
+use App\Middleware\Auth\AdminAuthMiddleware;
 use App\Model\Chat;
 use App\Model\Message;
 use App\Service\AudioService;
@@ -53,7 +53,7 @@ class SseController
 
     /**
      * @OA\Post(
-     *     path="/text",
+     *     path="/sse/text",
      *     summary="发送文本消息",
      *     description="在指定的聊天中发送文本消息",
      *     operationId="text",
@@ -109,7 +109,7 @@ class SseController
      *
      */
     #[RequestMapping(path: 'text',methods: 'post')]
-    #[Middlewares([RefreshTokenMiddleware::class])]
+    #[Middlewares([AdminAuthMiddleware::class])]
     public function text(RequestInterface $request, ResponseInterface $response,OpenaiService $openaiService,FilterWordService $filterWordService)
     {
         $user = $this->auth->guard('mini')->user();
@@ -133,63 +133,62 @@ class SseController
     }
     /**
      * @OA\Post(
-     * path="/audio",
-     * summary="上传音频文件并发送消息",
-     * description="上传音频文件并将其转化为文本发送到指定的聊天中",
-     * operationId="audio",
-     * tags={"Message"},
-     * @OA\RequestBody(
-     * required=true,
-     * description="请求体",
-     * @OA\JsonContent(
-     * @OA\Property(
-     * property="chat_id",
-     * type="integer",
-     * description="聊天 ID"
-     * ),
-     * @OA\Property(
-     * property="message_id",
-     * type="integer",
-     * description="消息 ID"
+     *     path="/sse/audio",
+     *     summary="上传音频文件并发送消息",
+     *     description="上传音频文件并将其转化为文本发送到指定的聊天中",
+     *     operationId="audio",
+     *     tags={"Message"},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         description="请求体",
+     *         @OA\JsonContent(
+     *             @OA\Property(
+     *                 property="chat_id",
+     *                 type="integer",
+     *                 description="聊天 ID"
+     *             ),
+     *             @OA\Property(
+     *                 property="message_id",
+     *                 type="integer",
+     *                 description="消息 ID"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="返回 objectName",
+     *         @OA\JsonContent(
+     *             @OA\Property(
+     *                 property="objectName",
+     *                 type="string",
+     *                 description="音频文件对象名"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="用户未认证"
+     *     ),
+     *     @OA\Response(
+     *         response=403,
+     *         description="用户没有权限访问该资源"
+     *     ),
+     *     @OA\Response(
+     *         response=404,
+     *         description="指定的聊天或消息不存在"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="请求参数验证失败"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="服务器内部错误"
+     *     )
      * )
-     * )
-     * ),
-     * @OA\Response(
-     * response=200,
-     * description="返回 objectName",
-     * @OA\JsonContent(
-     * @OA\Property(
-     * property="objectName",
-     * type="string",
-     * description="音频文件对象名"
-     * )
-     * )
-     * ),
-     * @OA\Response(
-     * response=401,
-     * description="用户未认证"
-     * ),
-     * @OA\Response(
-     * response=403,
-     * description="用户没有权限访问该资源"
-     * ),
-     * @OA\Response(
-     * response=404,
-     * description="指定的聊天或消息不存在"
-     * ),
-     * @OA\Response(
-     * response=422,
-     * description="请求参数验证失败"
-     * ),
-     * @OA\Response(
-     * response=500,
-     * description="服务器内部错误"
-     * )
-     * )
-     *
      */
     #[RequestMapping(path: 'audio',methods: 'post')]
-    #[Middlewares([RefreshTokenMiddleware::class])]
+    #[Middlewares([AdminAuthMiddleware::class])]
     public function audio(RequestInterface $request, ResponseInterface $response)
     {
         $chatId = $request->input('chat_id', '');
@@ -212,7 +211,7 @@ class SseController
      * Uploads an audio file for a chat.
      *
      * @OA\Post(
-     *     path="/upload_audio",
+     *     path="/sse/upload_audio",
      *     summary="Uploads an audio file for a chat.",
      *     description="Uploads an audio file for a chat specified by chat ID.",
      *     operationId="uploadAudio",
@@ -282,7 +281,7 @@ class SseController
     }
     /**
      * @OA\Get(
-     *     path="/getaudio",
+     *     path="/sse/getaudio",
      *     operationId="getAudioFile",
      *     tags={"Message"},
      *     summary="Get audio file",
@@ -320,7 +319,7 @@ class SseController
     }
     /**
      * @OA\Post(
-     *     path="/record",
+     *     path="/sse/record",
      *     operationId="addChatRecord",
      *     summary="添加聊天记录",
      *     description="添加一条聊天记录，并返回新添加的记录信息。",

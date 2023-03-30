@@ -35,7 +35,9 @@ class Order extends Model
     const STATUS_UNPAID = 0;
     const STATUS_PAID = 1;
     const STATUS_CANCELLED = 2;
-    const STATUS_DISTRIBUTED = 3;
+
+    const PAYMENT_METHOD_FREE = 'free';
+    const PAYMENT_METHOD_WECHAT = 'wechat';
     /**
      * The table associated with the model.
      */
@@ -51,13 +53,13 @@ class Order extends Model
      */
     protected array $casts = ['user_id' => 'integer', 'paid' => 'integer', 'package_id' => 'integer', 'package_quota' => 'integer', 'package_duration' => 'integer', 'status' => 'integer', 'created_at' => 'datetime', 'updated_at' => 'datetime'];
 
-    public function user()
+    public function user(): \Hyperf\Database\Model\Relations\BelongsTo
     {
-        return $this->hasOne(User::class,'id','user_id');
+        return $this->belongsTo(User::class,'id','user_id');
     }
 
-    public function package()
+    public function package(): \Hyperf\Database\Model\Relations\BelongsTo
     {
-        return $this->belongsTo(Package::class);
+        return $this->belongsTo(Package::class,'id','package_id');
     }
 }

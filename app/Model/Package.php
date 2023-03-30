@@ -16,6 +16,7 @@ use OpenApi\Annotations as OA;
  *     @OA\Property(property="quota", type="integer"),
  *     @OA\Property(property="duration", type="integer"),
  *     @OA\Property(property="status", type="integer"),
+ *     @OA\Property(property="level", type="integer"),
  *     @OA\Property(property="price", type="string"),
  *     @OA\Property(property="created_at", type="string", format="date-time"),
  *     @OA\Property(property="updated_at", type="string", format="date-time"),

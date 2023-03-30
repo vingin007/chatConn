@@ -2,20 +2,16 @@
 
 namespace App\Controller;
 
-use App\Middleware\Auth\RefreshTokenMiddleware;
+use App\Middleware\Auth\AdminAuthMiddleware;
 use App\Service\PackageService;
 use App\Traits\ApiResponseTrait;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
-use Hyperf\HttpServer\Annotation\Middleware;
-use Hyperf\HttpServer\Annotation\PostMapping;
-use Hyperf\HttpServer\Annotation\PutMapping;
-use Hyperf\HttpServer\Annotation\GetMapping;
-use Hyperf\HttpServer\Annotation\DeleteMapping;
+use Hyperf\HttpServer\Annotation\Middlewares;
 use Hyperf\HttpServer\Annotation\RequestMapping;
 use Hyperf\HttpServer\Contract\RequestInterface;
-
 #[Controller]
+#[Middlewares([AdminAuthMiddleware::class])]
 class AdminPackageController
 {
     use ApiResponseTrait;
@@ -39,17 +35,6 @@ class AdminPackageController
         $data = $request->all();
         $package = $this->packageService->create($data);
         return $package;
-    }
-
-    #[RequestMapping(path: 'update',methods: 'post')]
-    public function updatePackage(RequestInterface $request)
-    {
-        $data = $request->all();
-        $package = $this->packageService->update($data->id, $data);
-        if (!$package) {
-            return $this->fail('Package not found',404);
-        }
-        return $this->success($package);
     }
 
     #[RequestMapping(path: 'delete',methods: 'post')]

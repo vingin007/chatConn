@@ -50,6 +50,11 @@ return [
             'provider' => 'mini',
             'options' => [],
         ],
+        'admin' => [
+            'driver' => JwtGuard::class,
+            'provider' => 'admin',
+            'options' => [],
+        ],
     ],
 
     /*
@@ -75,7 +80,13 @@ return [
                 'hash_driver' => 'bcrypt',
             ],
         ],
-
+        'admin' => [
+            'driver' => ModelUserProvider::class,
+            'options' => [
+                'model' => App\Model\Admin::class,
+                'hash_driver' => 'bcrypt',
+            ],
+        ],
          /*'users' => [
              'driver' => \HyperfExtension\Auth\UserProviders\ModelUserProvider::class,
              'options' => [

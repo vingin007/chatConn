@@ -21,7 +21,7 @@ class MiniWechatController
     protected AuthService $authService;
     /**
      * @OA\Post(
-     *     path="/login",
+     *     path="/mini_wechat/login",
      *     summary="用户登录",
      *     description="使用手机号和密码进行登录",
      *     operationId="login",
@@ -89,7 +89,7 @@ class MiniWechatController
     }
     /**
      * @OA\Post(
-     *     path="/register",
+     *     path="/mini_wechat/register",
      *     summary="Register a new user and login",
      *     description="Register a new user and login with the 'mini' guard",
      *     operationId="register",

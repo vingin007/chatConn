@@ -10,7 +10,7 @@ use Hyperf\HttpServer\Annotation\Middleware;
 use Hyperf\HttpServer\Annotation\Middlewares;
 use Hyperf\HttpServer\Annotation\RequestMapping;
 use Hyperf\HttpServer\Contract\RequestInterface;
-use App\Middleware\Auth\RefreshTokenMiddleware;
+use App\Middleware\Auth\AdminAuthMiddleware;
 use HyperfExtension\Jwt\Contracts\JwtFactoryInterface;
 use Psr\Http\Message\ResponseInterface;
 

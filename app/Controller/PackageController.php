@@ -2,7 +2,7 @@
 
 namespace App\Controller;
 
-use App\Middleware\Auth\RefreshTokenMiddleware;
+use App\Middleware\Auth\AdminAuthMiddleware;
 use App\Service\PackageService;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
@@ -10,7 +10,7 @@ use Hyperf\HttpServer\Annotation\Middleware;
 use Hyperf\HttpServer\Annotation\RequestMapping;
 use OpenApi\Annotations as OA;
 #[Controller]
-#[Middleware(RefreshTokenMiddleware::class)]
+#[Middleware(AdminAuthMiddleware::class)]
 class PackageController
 {
     #[Inject]
@@ -22,7 +22,7 @@ class PackageController
     }
     /**
      * @OA\Get(
-     *     path="/packages/lists",
+     *     path="/package/lists",
      *     operationId="getAllPackages",
      *     tags={"Packages"},
      *     summary="Get all packages",

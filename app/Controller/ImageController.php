@@ -19,7 +19,7 @@ class ImageController
     protected OpenaiService $openaiService;
     /**
      * @OA\Post(
-     *     path="/generate",
+     *     path="/image/generate",
      *     summary="生成一张图片",
      *     tags={"Image"},
      *     @OA\RequestBody(
@@ -70,7 +70,7 @@ class ImageController
      * 编辑图片
      *
      * @OA\Post(
-     *     path="/edit",
+     *     path="/image/edit",
      *     summary="编辑图片",
      *     description="编辑指定的原始图片并返回结果",
      *     operationId="edit_image",
@@ -144,7 +144,7 @@ class ImageController
     }
     /**
      * @OA\Post(
-     *     path="/variation_image",
+     *     path="/image/variation_image",
      *     summary="变异图片",
      *     description="将原始图片通过 OpenAI 的 DALL·E 模型进行变异",
      *     tags={"Image"},

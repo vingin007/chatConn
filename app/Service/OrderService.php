@@ -11,14 +11,18 @@ use App\Model\User;
 use Carbon\Carbon;
 use Hyperf\AsyncQueue\Driver\DriverFactory;
 use Hyperf\AsyncQueue\Driver\DriverInterface;
-use Hyperf\DbConnection\Db;
 use Hyperf\Redis\Redis;
-use Throwable;
+use Hyperf\Utils\Str;
 
 class OrderService
 {
-    protected DriverInterface $driver;
+    const MAX_UNPAID_ORDERS = 10; // 最大未付款订单数
+    const ORDER_AMOUNT_MIN = 0.01; // 订单最小金额
+    const ORDER_AMOUNT_MAX = 0.09; // 订单最大金额
+
     protected $redis;
+
+    protected DriverInterface $driver;
 
     public function __construct(DriverFactory $driverFactory)
     {
@@ -26,249 +30,112 @@ class OrderService
         $this->driver = $driverFactory->get('default');
     }
 
-    /**
-     * 生成加量包订单.
-     *
-     * @param int $packageId 加量包ID
-     * @param int $userId 用户ID
-     * @return Order
-     */
-    public function generateOrder(Package $package, User $user): Order
+    public function generateOrder(Package $package, User $user)
     {
-        // 查询当前加量包的所有待付款订单
-        $unpaidOrders = Order::query()
+        $currentorder = Order::query()
+            ->where('user_id', $user->id)
             ->where('package_id', $package->id)
             ->where('status', Order::STATUS_UNPAID)
-            ->orderBy('amount', 'asc')
-            ->get();
+            ->whereBetween('created_at', [Carbon::now()->subMinutes(3), Carbon::now()])
+            ->first();
+        if ($currentorder){
+            throw new BusinessException(400, '您有未支付的订单，请先支付');
+        }
+        // 判断当前未付款订单数量是否已达到上限
+        $unpaidOrders = Order::query()
+            ->where('status', Order::STATUS_UNPAID)
+            ->where('package_id', $package->id)
+            ->whereBetween('created_at', [Carbon::now()->subMinutes(3), Carbon::now()])
+            ->count();
 
-        // 获取已付款金额池和已使用金额池
-        $paidPool = $this->getPaidPool($package->id);
-        $usedPool = $this->getUsedPool($package->id);
+        if ($unpaidOrders >= 10) {
+            throw new BusinessException(400, '支付通道拥挤，请稍后再试');
+        }
 
-        // 判断待付款订单数量是否达到上限
-        if (count($unpaidOrders) >= 15) {
-            // 提示用户支付通道拥挤，无法购买
-            throw new BusinessException('支付通道拥挤，无法购买');
+        // 从 Redis 中获取订单金额
+        $amount = $this->redis->rPop("order:amounts:{$package->id}");
+        if (!$amount) {
+            throw new BusinessException(400, '支付通道拥挤，请稍后再试');
         }
 
         $order = new Order();
-        $order->order_no = $this->generateOrderNo($user->id);
+        $order->order_no = Str::random(20);
+        $order->payment_method = 'wechat';
+        $order->paid = false;
         $order->user_id = $user->id;
-        $order->paid = 0;
         $order->package_id = $package->id;
         $order->package_name = $package->name;
         $order->package_quota = $package->quota;
         $order->package_duration = $package->duration;
-        $order->expired_at = Carbon::now()->addDays(30);
+        $order->amount = $amount;
+        $order->expired_at = Carbon::now()->addDays($package->duration);
         $order->status = Order::STATUS_UNPAID;
-        // 检查是否存在已付款订单
-        if (count($usedPool) > 0) {
-            // 从已付款金额池中选择一个未被使用过的金额
-            $unusedPrice = $this->chooseUnusedPrice($paidPool, $usedPool);
-            $order->amount = $unusedPrice;
-            $order->save();
-            $this->updateUsedPool($package->id);
-        } else {
-            // 分配新的随机金额给待付款订单
-            if (count($usedPool) > 0) {
-                $order->amount = $this->getUnusedPrice($usedPool);
-            } else {
-                $order->amount = $this->getRandomAddPrice($usedPool);
-            }
-            $order->save();
+
+        if (!$order->save()) {
+            $this->redis->lPush("order:amounts:{$package->id}", $amount);
+            throw new BusinessException(400, '下单失败，请稍后再试');
         }
-        $this->driver->push(new CancelOrderJob($order->order_no), 60*3);
+        $this->driver->push(new CancelOrderJob($order->order_no),60*3);
         return $order;
     }
-    /**
-     * 获取加量包原价.
-     *
-     * @param int $packageId 加量包ID
-     * @return float
-     */
-    public function getPackagePrice(int $packageId): float
-    {
-        $package = Package::query()->findOrFail($packageId);
-        return $package->price;
-    }
 
-    /**
-     * 手动处理支付
-     * @param Order $order
-     * @param PaymentRecord $payment_record
-     * @return Order
-     */
-    public function handlePayment(Order $order,PaymentRecord $payment_record)
+    public function payOrder($amount)
     {
-        Db::beginTransaction();
-        try {
-            $order->paid = $payment_record->payment_amount;
-            $order->status = Order::STATUS_PAID;
-            $order->save();
-            $payment_record->payment_order_no = $order->order_no;
-            $payment_record->user_id = $order->user_id;
-            $payment_record->save();
-            Db::commit();
-        }catch (Throwable $e) {
-            Db::rollBack();
-            throw new BusinessException('订单支付失败');
+        $order = Order::query()->where('amount', $amount)
+            ->whereBetween('created_at', [Carbon::now()->subMinutes(3), Carbon::now()])
+            ->where('status', Order::STATUS_UNPAID)
+            ->first();
+        if (!$order) {
+            $payment = new PaymentRecord();
+            $payment->payment_time = Carbon::now();
+            $payment->payment_amount = $amount;
+            $payment->reason = '订单不存在';
+            $payment->save();
         }
+
+        if ($order->status != Order::STATUS_UNPAID) {
+            $payment = new PaymentRecord();
+            $payment->payment_time = Carbon::now();
+            $payment->payment_amount = $amount;
+            $payment->reason = '订单已支付或已取消';
+            $payment->save();
+        }
+
+        $order->status = Order::STATUS_PAID;
+        $order->paid_at = Carbon::now();
+
+        if (!$order->save()) {
+            throw new BusinessException(400, 'Failed to pay order');
+        }
+
+        // 将订单金额返还到 Redis 中
+        $this->redis->lPush("order:amounts:{$order->package_id}", $order->amount);
+
         return $order;
     }
-    /**
-     * 订单支付成功后的处理.
-     *
-     * @param Order $order 订单
-     * @param float $paidAmount 支付金额
-     * @return true
-     */
-    public function callbackPayment(float $paidAmount)
+
+    public function cancelOrder($orderId,User $user)
     {
-        $record = new PaymentRecord();
-        $record->payment_time = Carbon::now();
-        try {
-            $order = Order::query()->where('amount', $paidAmount)->where('status',0)->firstOrFail();
-            $order->paid = $paidAmount;
-            $order->status = Order::STATUS_PAID;
-            $order->save();
-        } catch (Throwable $e) {
-            // 记录异常付款
-            $record->payment_amount = $paidAmount;
-            $record->save();
-            return true;
+        $order = Order::find($orderId);
+        if (!$order) {
+            throw new BusinessException(404, 'Order not found');
         }
-        $record->payment_order_no = $order->order_no;
-        $record->user_id = $order->user_id;
-        $record->amount = $paidAmount;
-        $record->save();
-        $packageId = $order->package_id;
-        $this->updatePaidPool($packageId);
-        $this->updateUsedPool($packageId);
-        return true;
-    }
-    public function getRecentOrders(int $packageId,$status): array
-    {
-        date_default_timezone_set('Asia/Shanghai');
-        $now = Carbon::now()->toDateTimeString();
-        $fiveMinutesAgo = Carbon::now()->subMinutes(5)->toDateTimeString();
-        $orders = Order::query()
-            ->whereBetween('created_at', [$fiveMinutesAgo, $now])
-            ->where('status', $status)
-            ->where('package_id', $packageId)
-            ->pluck('amount')
-            ->toArray();
-        $uniqueOrders = array_unique($orders);
-        return $uniqueOrders;
-    }
-
-    /**
-     * 更新已付款金额池.
-     *
-     * @param int $packageId 加量包ID
-     */
-    private function updatePaidPool(int $packageId): void
-    {
-        $redisKey = $this->getPaidPoolRedisKey($packageId);
-        $paidPool = $this->getRecentOrders($packageId,Order::STATUS_PAID);
-        $this->redis->set($redisKey, json_encode($paidPool));
-    }
-
-    /**
-     * 更新已使用金额池.
-     *
-     * @param int $packageId 加量包ID
-     */
-    private function updateUsedPool(int $packageId) : void
-    {
-        $redisKey = $this->getUsedPoolRedisKey($packageId);
-        $usedPool = $this->getRecentOrders($packageId,Order::STATUS_UNPAID);
-        $this->redis->set($redisKey, json_encode($usedPool));
-    }
-    /**
-     * 获取已付款金额池在 Redis 中的键名.
-     *
-     * @param int $packageId 加量包ID
-     * @return string
-     */
-    private function getPaidPoolRedisKey(int $packageId): string
-    {
-        return sprintf('paid_pool:%d', $packageId);
-    }
-
-    /**
-     * 获取已使用金额池在 Redis 中的键名.
-     *
-     * @param int $packageId 加量包ID
-     * @return string
-     */
-    private function getUsedPoolRedisKey(int $packageId): string
-    {
-        return sprintf('used_pool:%d', $packageId);
-    }
-    /**
-     * 从已付款金额池中选择一个未被使用过的金额.
-     *
-     * @param array $paidPool 已付款金额池
-     * @param array $usedPool 已使用金额池
-     * @return float
-     */
-    private function chooseUnusedPrice(array $paidPool, array $usedPool): float
-    {
-        $unusedPool = array_diff($paidPool, $usedPool);
-        if (count($unusedPool) == 0) {
-            return 0;
+        if ($order->user_id != $user->id) {
+            throw new BusinessException(400, 'no permission');
         }
-        return array_values($unusedPool)[0];
-    }
-
-    /**
-     * 获取一个随机的加价金额.
-     *
-     * @param array $usedPool 已使用金额池
-     * @return float
-     */
-    private function getRandomAddPrice(array $usedPool): float
-    {
-        $addPrice = 0.01 * rand(1, 14);
-        while (in_array($addPrice, $usedPool)) {
-            $addPrice = 0.01 * rand(1, 14);
+        if ($order->status != Order::STATUS_UNPAID) {
+            throw new BusinessException(400, 'Order has been paid or canceled');
         }
-        return $addPrice;
-    }
 
-    /**
-     * 获取已付款金额池.
-     *
-     * @param int $packageId 加量包ID
-     * @return array
-     */
-    private function getPaidPool(int $packageId): array
-    {
-        $redisKey = $this->getPaidPoolRedisKey($packageId);
-        $paidPoolJson = $this->redis->get($redisKey);
-        $paidPool = $paidPoolJson ? json_decode($paidPoolJson, true) : [];
+        $order->status = Order::STATUS_CANCELLED;
 
-        return $paidPool;
-    }
+        if (!$order->save()) {
+            throw new BusinessException(400, 'Failed to cancel order');
+        }
 
-    /**
-     * 获取已使用金额池.
-     *
-     * @param int $packageId 加量包ID
-     * @return array
-     */
-    private function getUsedPool(int $packageId): array
-    {
-        $redisKey = $this->getUsedPoolRedisKey($packageId);
-        $usedPoolJson = $this->redis->get($redisKey);
-        $usedPool = $usedPoolJson ? json_decode($usedPoolJson, true) : [];
+        // 将订单金额返还到 Redis 中
+        $this->redis->lPush("order:amounts:{$order->package_id}", $order->amount);
 
-        return $usedPool;
-    }
-    function generateOrderNo($userId) {
-        $timestamp = time();
-        $random = mt_rand(10000, 99999);
-        return sprintf('%s%05d%s', date('YmdHis', $timestamp), $userId, $random);
+        return $order;
     }
 }

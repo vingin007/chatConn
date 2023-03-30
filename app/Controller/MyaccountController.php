@@ -4,7 +4,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Exception\BusinessException;
-use App\Middleware\Auth\RefreshTokenMiddleware;
+use App\Middleware\Auth\AdminAuthMiddleware;
 use App\Middleware\SmsLimitMiddleware;
 use App\Service\AuthService;
 use App\Service\SmsService;
@@ -56,7 +56,7 @@ class MyaccountController
      * )
      */
     #[RequestMapping(path: 'bind_mobile')]
-    #[Middlewares([RefreshTokenMiddleware::class])]
+    #[Middlewares([AdminAuthMiddleware::class])]
     public function bindMobile(RequestInterface $request,ResponseInterface $response)
     {
         $mobile = $request->post('mobile');
@@ -92,7 +92,7 @@ class MyaccountController
      * Sends a verification code to the specified mobile number.
      *
      * @OA\Post(
-     *     path="/send_code",
+     *     path="/myaccount/send_code",
      *     summary="Sends a verification code to the specified mobile number.",
      *     tags={"Verification"},
      *     @OA\RequestBody(
@@ -147,7 +147,7 @@ class MyaccountController
      * )
      */
     #[RequestMapping(path: 'send_code')]
-    #[Middlewares([RefreshTokenMiddleware::class,SmsLimitMiddleware::class])]
+    #[Middlewares([AdminAuthMiddleware::class,SmsLimitMiddleware::class])]
     public function sendVerificationCode(RequestInterface $request)
     {
         $mobile = $request->post('mobile');

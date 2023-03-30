@@ -1,84 +1,108 @@
 <?php
-
-declare(strict_types=1);
 namespace App\Controller;
 
+use App\Exception\BusinessException;
 use App\Model\Package;
 use App\Service\OrderService;
 use App\Traits\ApiResponseTrait;
-use Exception;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
-use Hyperf\HttpServer\Annotation\RequestMapping;
-use Hyperf\HttpServer\Contract\RequestInterface;
-use Hyperf\HttpServer\Contract\ResponseInterface;
 use HyperfExtension\Auth\AuthManager;
-use OpenApi\Annotations as OA;
 #[Controller]
-class OrderController
+class OrderController extends AbstractController
 {
     use ApiResponseTrait;
     #[Inject]
-    protected AuthManager $auth;
+    protected OrderService $orderService;
+
     protected $user;
     #[Inject]
-    protected OrderService $orderService;
+    protected AuthManager $auth;
+
     public function __construct()
     {
         $this->user = $this->auth->guard('mini')->user();
     }
-
     /**
-     * 创建订单。
-     *
-     *
      * @OA\Post(
      *     path="/order/create",
      *     tags={"Order"},
-     *     summary="创建订单",
-     *     description="用户通过购买套餐创建订单",
+     *     summary="Create a new order",
      *     @OA\RequestBody(
-     *         required=true,
-     *         description="请求体参数",
      *         @OA\JsonContent(
-     *             @OA\Property(property="package_id", type="integer", description="套餐ID"),
+     *             type="object",
+     *             required={"package_id"},
+     *             @OA\Property(property="package_id", type="integer", example=1)
      *         )
      *     ),
-     *     @OA\Response(response="200", description="成功",
-     *         @OA\JsonContent(
-     *             ref="#/components/schemas/Order"
-     *         )
+     *     @OA\Response(
+     *         response="200",
+     *         description="Successful operation",
+     *         @OA\JsonContent(ref="#/components/schemas/Order")
      *     ),
-     *     @OA\Response(response="400", description="无效参数",
+     *     @OA\Response(
+     *         response="400",
+     *         description="Invalid input",
      *         @OA\JsonContent(
+     *             type="object",
+     *             required={"code", "message"},
      *             @OA\Property(property="code", type="integer", example=400),
-     *             @OA\Property(property="message", type="string", example="参数错误")
-     *         )
-     *     ),
-     *     @OA\Response(response="401", description="未登录",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="code", type="integer", example=401),
-     *             @OA\Property(property="message", type="string", example="请先登录")
-     *         )
-     *     ),
-     *     @OA\Response(response="403", description="无权限",
-     *         @OA\JsonContent(
-     *             @OA\Property(property="code", type="integer", example=403),
-     *             @OA\Property(property="message", type="string", example="无权操作")
+     *             @OA\Property(property="message", type="string")
      *         )
      *     )
      * )
      */
-    #[RequestMapping(path: 'create', methods: 'post')]
-    public function create(RequestInterface $request)
+    public function createOrder()
     {
-        $package_id = $request->input('package_id');
+        $packageId = $this->request->input('package_id');
         try {
-            $package = Package::findOrFail($package_id);
-            $order = $this->orderService->getRecentOrders(41,0);
-        }catch (Exception $e) {
-            return $this->fail($e->getMessage());
+            $package = Package::findOrFail($packageId);
+            $order = $this->orderService->generateOrder($package, $this->user);
+        } catch (BusinessException $e) {
+            return $this->fail($e->getErrorCode(),$e->getErrorMessage());
         }
+
+        return $this->success($order);
+    }
+    /**
+     * @OA\Post(
+     *     path="/order/cancel",
+     *     tags={"Order"},
+     *     summary="Cancel an existing order",
+     *     @OA\RequestBody(
+     *         @OA\JsonContent(
+     *             type="object",
+     *             required={"order_no"},
+     *             @OA\Property(property="order_no", type="string", example="ORDER20220324162102-5411")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response="200",
+     *         description="Successful operation",
+     *         @OA\JsonContent(ref="#/components/schemas/Order")
+     *     ),
+     *     @OA\Response(
+     *         response="400",
+     *         description="Invalid input",
+     *         @OA\JsonContent(
+     *             type="object",
+     *             required={"code", "message"},
+     *             @OA\Property(property="code", type="integer", example=400),
+     *             @OA\Property(property="message", type="string")
+     *         )
+     *     )
+     * )
+     */
+    public function cancelOrder()
+    {
+        $orderNo = $this->request->input('order_no');
+
+        try {
+            $order = $this->orderService->cancelOrder($orderNo,$this->user);
+        } catch (BusinessException $e) {
+            return $this->fail($e->getErrorCode(),$e->getErrorMessage());
+        }
+
         return $this->success($order);
     }
 }

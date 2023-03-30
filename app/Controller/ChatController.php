@@ -3,7 +3,7 @@
 declare(strict_types=1);
 namespace App\Controller;
 
-use App\Middleware\Auth\RefreshTokenMiddleware;
+use App\Middleware\Auth\AdminAuthMiddleware;
 use App\Model\Chat;
 use App\Service\ChatService;
 use App\Traits\ApiResponseTrait;
@@ -24,7 +24,7 @@ use Psr\Http\Message\ResponseInterface;
  */
 
 #[Middlewares([
-    RefreshTokenMiddleware::class,
+    AdminAuthMiddleware::class,
 ])]
 class ChatController
 {
@@ -40,7 +40,7 @@ class ChatController
      * 创建聊天
      *
      * @OA\Post(
-     *     path="/chat",
+     *     path="/chat/create",
      *     tags={"Chat"},
      *     summary="创建聊天",
      *     description="创建一个新的聊天。",
@@ -185,7 +185,7 @@ class ChatController
     }
     /**
      * @OA\Get(
-     *     path="/chat/list",
+     *     path="/chat/lists",
      *     summary="获取聊天列表",
      *     description="获取当前用户的所有聊天列表",
      *     operationId="chatList",
@@ -210,7 +210,7 @@ class ChatController
      *     )
      * )
      */
-    #[RequestMapping(path: 'list', methods: 'get')]
+    #[RequestMapping(path: 'lists', methods: 'get')]
     public function list(RequestInterface $request, ChatService $chatService): ResponseInterface
     {
         $chats = $chatService->getChat($this->user);
