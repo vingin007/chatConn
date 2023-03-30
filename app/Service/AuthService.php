@@ -2,6 +2,7 @@
 namespace App\Service;
 
 use App\Exception\BusinessException;
+use App\Model\Chat;
 use App\Model\User;
 use Hyperf\Utils\Str;
 use HyperfExtension\Auth\Contracts\AuthManagerInterface;
@@ -44,6 +45,10 @@ class AuthService
         // 登录用户
         $token = $this->auth->guard($guard)->login($user);
 
+        $chat = new Chat();
+        $chat->name = '默认频道';
+        $chat->user_id = $user->id;
+        $chat->save();
         return [
             'access_token' => $token,
             'token_type' => 'bearer',

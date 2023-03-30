@@ -7,6 +7,7 @@ namespace App\Service;
 use App\Exception\BusinessException;
 use App\Model\Package;
 use App\Model\User;
+use Carbon\Carbon;
 use Hyperf\Di\Annotation\Inject;
 
 class UserService
@@ -57,7 +58,8 @@ class UserService
         }catch (BusinessException $e){
             throw $e;
         }
-
+        $user->quota = 10;
+        $user->expire_time = Carbon::now()->addMonth();
         $user->mobile = $mobile;
         $user->save();
         return $user;

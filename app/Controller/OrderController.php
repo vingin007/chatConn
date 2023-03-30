@@ -9,6 +9,7 @@ use App\Traits\ApiResponseTrait;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\Middlewares;
+use Hyperf\HttpServer\Annotation\RequestMapping;
 use HyperfExtension\Auth\AuthManager;
 #[Controller]
 #[Middlewares([RefreshTokenMiddleware::class])]
@@ -56,6 +57,7 @@ class OrderController extends AbstractController
      *     )
      * )
      */
+    #[RequestMapping(path: 'create', methods: 'post')]
     public function createOrder()
     {
         $packageId = $this->request->input('package_id');
@@ -98,6 +100,7 @@ class OrderController extends AbstractController
      *     )
      * )
      */
+    #[RequestMapping(path: 'cancel', methods: 'post')]
     public function cancelOrder()
     {
         $orderNo = $this->request->input('order_no');

@@ -6,6 +6,7 @@ namespace App\Controller;
 use App\Exception\BusinessException;
 use App\Middleware\Auth\AdminAuthMiddleware;
 use App\Middleware\Auth\RefreshTokenMiddleware;
+use App\Middleware\SmsIpLimitMiddleware;
 use App\Middleware\SmsLimitMiddleware;
 use App\Service\AuthService;
 use App\Service\SmsService;
@@ -59,7 +60,6 @@ class MyaccountController
      * )
      */
     #[RequestMapping(path: 'bind_mobile')]
-    #[Middlewares([AdminAuthMiddleware::class])]
     public function bindMobile(RequestInterface $request,ResponseInterface $response)
     {
         $mobile = $request->post('mobile');
@@ -151,7 +151,7 @@ class MyaccountController
      * )
      */
     #[RequestMapping(path: 'send_code')]
-    #[Middlewares([AdminAuthMiddleware::class,SmsLimitMiddleware::class])]
+    #[Middlewares([SmsLimitMiddleware::class,SmsIpLimitMiddleware::class])]
     public function sendVerificationCode(RequestInterface $request)
     {
         $mobile = $request->post('mobile');

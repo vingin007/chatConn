@@ -28,6 +28,8 @@ use Hyperf\HttpServer\Annotation\Middlewares;
 use Hyperf\HttpServer\Annotation\RequestMapping;
 use Hyperf\HttpServer\Contract\RequestInterface;
 use Hyperf\HttpServer\Contract\ResponseInterface;
+use Hyperf\RateLimit\Annotation\RateLimit;
+use Hyperf\RateLimit\Exception\RateLimitException;
 use HyperfExtension\Auth\Access\AuthorizesRequests;
 use HyperfExtension\Auth\AuthManager;
 use HyperfExtension\Auth\Exceptions\AuthorizationException;
@@ -111,8 +113,8 @@ class SseController
      * )
      *
      */
+    #[RateLimit(create: 1,capacity: 4)]
     #[RequestMapping(path: 'text',methods: 'post')]
-    #[Middlewares([AdminAuthMiddleware::class])]
     public function text(RequestInterface $request, ResponseInterface $response,OpenaiService $openaiService,FilterWordService $filterWordService)
     {
         $user = $this->auth->guard('mini')->user();
@@ -131,6 +133,9 @@ class SseController
         }catch (GuzzleException|ModelNotFoundException|NotFoundExceptionInterface|ContainerExceptionInterface $exception){
             Db::rollBack();
            return $this->fail($exception->getMessage());
+        }catch (RateLimitException $exception) {
+            Db::rollBack();
+            return $this->fail('发送通道拥挤，请等一秒', 422);
         }
         return $message;
     }
@@ -192,7 +197,7 @@ class SseController
      * )
      */
     #[RequestMapping(path: 'audio',methods: 'post')]
-    #[Middlewares([AdminAuthMiddleware::class])]
+    #[RateLimit(create: 1,capacity: 4)]
     public function audio(RequestInterface $request, ResponseInterface $response)
     {
         $chatId = $request->input('chat_id', '');
@@ -206,8 +211,10 @@ class SseController
             return $this->fail("语音识别失败，请重试!");
         } catch (GuzzleException $e) {
             return $this->fail("GPT模型链接失败，请重试!");
-        } catch (NotFoundExceptionInterface|ContainerExceptionInterface|FilesystemException|RuntimeException|InvalidArgumentException $e) {
+        } catch (RuntimeException|InvalidArgumentException $e) {
             return $this->fail($e->getMessage());
+        }catch (RateLimitException $exception) {
+            return $this->fail('发送通道拥挤，请等一秒', 422);
         }
         return $this->success($objectName);
     }
@@ -339,6 +346,7 @@ class SseController
      *     @OA\Response(response=500, description="服务器内部错误")
      * )
      */
+    #[RequestMapping(path: 'record',methods: 'post')]
     public function record(RequestInterface $request, ResponseInterface $response)
     {
         $message = $request->input('message');
