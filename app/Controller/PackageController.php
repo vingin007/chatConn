@@ -12,7 +12,7 @@ use Hyperf\HttpServer\Annotation\Middlewares;
 use Hyperf\HttpServer\Annotation\RequestMapping;
 use OpenApi\Annotations as OA;
 #[Controller]
-#[Middlewares(RefreshTokenMiddleware::class)]
+#[Middlewares([RefreshTokenMiddleware::class])]
 class PackageController
 {
     #[Inject]

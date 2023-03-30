@@ -2,14 +2,16 @@
 namespace App\Controller;
 
 use App\Exception\BusinessException;
+use App\Middleware\Auth\RefreshTokenMiddleware;
 use App\Model\Package;
 use App\Service\OrderService;
 use App\Traits\ApiResponseTrait;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
+use Hyperf\HttpServer\Annotation\Middlewares;
 use HyperfExtension\Auth\AuthManager;
 #[Controller]
-#[Middlewares(RefreshTokenMiddleware::class)]
+#[Middlewares([RefreshTokenMiddleware::class])]
 class OrderController extends AbstractController
 {
     use ApiResponseTrait;

@@ -5,6 +5,7 @@ namespace App\Controller;
 
 use App\Exception\BusinessException;
 use App\Middleware\Auth\AdminAuthMiddleware;
+use App\Middleware\Auth\RefreshTokenMiddleware;
 use App\Middleware\SmsLimitMiddleware;
 use App\Service\AuthService;
 use App\Service\SmsService;
@@ -22,7 +23,7 @@ use Overtrue\EasySms\Exceptions\NoGatewayAvailableException;
 use OpenApi\Annotations as OA;
 
 #[Controller]
-#[Middlewares(RefreshTokenMiddleware::class)]
+#[Middlewares([RefreshTokenMiddleware::class])]
 class MyaccountController
 {
     use ApiResponseTrait;

@@ -14,7 +14,7 @@ use Hyperf\HttpServer\Contract\RequestInterface;
 use Hyperf\HttpServer\Contract\ResponseInterface;
 use OpenApi\Annotations as OA;
 #[Controller]
-#[Middlewares(RefreshTokenMiddleware::class)]
+#[Middlewares([RefreshTokenMiddleware::class])]
 class ImageController
 {
     use ApiResponseTrait;

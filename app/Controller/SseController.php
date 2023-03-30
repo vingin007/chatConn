@@ -38,7 +38,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 use OpenApi\Annotations as OA;
 
 #[Controller]
-#[Middlewares(RefreshTokenMiddleware::class)]
+#[Middlewares([RefreshTokenMiddleware::class])]
 class SseController
 {
     use AuthorizesRequests;
