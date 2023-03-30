@@ -23,7 +23,7 @@ class CancelOrderJob extends Job
 
     public function handle()
     {
-        $order = Order::where('order_no', $this->params)->first();
+        $order = Order::query()->where('order_no', $this->params)->first();
         if ($order->status == Order::STATUS_UNPAID) {
             $order->status = Order::STATUS_CANCELLED;
             $order->save();
