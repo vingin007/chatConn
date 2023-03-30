@@ -67,7 +67,7 @@ class OrderController extends AbstractController
             $package = Package::findOrFail($packageId);
             $order = $this->orderService->generateOrder($package, $this->user);
         } catch (BusinessException|ModelNotFoundException $e) {
-            return $this->fail($e->getErrorCode(),$e->getErrorMessage());
+            return $this->fail($e->getMessage(),400);
         }
 
         return $this->success($order);
@@ -110,7 +110,7 @@ class OrderController extends AbstractController
         try {
             $order = $this->orderService->cancelOrder($orderNo,$this->user);
         } catch (BusinessException|ModelNotFoundException $e) {
-            return $this->fail($e->getErrorCode(),$e->getErrorMessage());
+            return $this->fail($e->getMessage(),400);
         }
 
         return $this->success($order);
