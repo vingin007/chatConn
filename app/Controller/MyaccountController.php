@@ -38,6 +38,7 @@ class MyaccountController
      *     path="/myaccount/bind_mobile",
      *     summary="绑定手机",
      *     tags={"User"},
+     *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         description="请求体",
@@ -95,6 +96,7 @@ class MyaccountController
      *     path="/myaccount/send_code",
      *     summary="Sends a verification code to the specified mobile number.",
      *     tags={"Verification"},
+     *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         description="Request body.",

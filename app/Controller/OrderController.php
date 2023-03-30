@@ -28,6 +28,7 @@ class OrderController extends AbstractController
      *     path="/order/create",
      *     tags={"Order"},
      *     summary="Create a new order",
+     *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         @OA\JsonContent(
      *             type="object",
@@ -69,6 +70,7 @@ class OrderController extends AbstractController
      *     path="/order/cancel",
      *     tags={"Order"},
      *     summary="Cancel an existing order",
+     *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         @OA\JsonContent(
      *             type="object",

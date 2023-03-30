@@ -8,6 +8,7 @@ use App\Model\Chat;
 use App\Service\ChatService;
 use App\Traits\ApiResponseTrait;
 use Hyperf\Di\Annotation\Inject;
+use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\Middlewares;
 use Hyperf\HttpServer\Annotation\RequestMapping;
 use Hyperf\HttpServer\Contract\RequestInterface;
@@ -23,9 +24,19 @@ use Psr\Http\Message\ResponseInterface;
  * )
  */
 
+/**
+ * @OA\SecurityScheme(
+ *     type="http",
+ *     scheme="bearer",
+ *     bearerFormat="JWT",
+ *     securityScheme="bearerAuth"
+ * )
+ */
+
 #[Middlewares([
     AdminAuthMiddleware::class,
 ])]
+#[Controller]
 class ChatController
 {
     use ApiResponseTrait;
@@ -44,7 +55,7 @@ class ChatController
      *     tags={"Chat"},
      *     summary="创建聊天",
      *     description="创建一个新的聊天。",
-     *     security={{"jwt": {}}},
+     *     security={{"bearerAuth":{}}},
      *     @OA\Response(response="200", description="成功", @OA\JsonContent(ref="#/components/schemas/Chat")),
      *     @OA\Response(response="401", description="未授权"),
      *     @OA\Response(response="422", description="验证失败")
@@ -121,7 +132,7 @@ class ChatController
      *     summary="修改聊天分组名称",
      *     description="修改指定聊天分组的名称",
      *     tags={"Chat"},
-     *     security={{"bearerAuth": {}}},
+     *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         description="请求体",

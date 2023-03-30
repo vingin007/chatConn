@@ -22,6 +22,7 @@ class ImageController
      *     path="/image/generate",
      *     summary="生成一张图片",
      *     tags={"Image"},
+     *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         description="请求体",
      *         required=true,
@@ -74,6 +75,7 @@ class ImageController
      *     summary="编辑图片",
      *     description="编辑指定的原始图片并返回结果",
      *     operationId="edit_image",
+     *     security={{"bearerAuth":{}}},
      *     tags={"Image"},
      *     @OA\RequestBody(
      *         description="请求体",
@@ -147,6 +149,7 @@ class ImageController
      *     path="/image/variation_image",
      *     summary="变异图片",
      *     description="将原始图片通过 OpenAI 的 DALL·E 模型进行变异",
+     *     security={{"bearerAuth":{}}},
      *     tags={"Image"},
      *     @OA\RequestBody(
      *         required=true,

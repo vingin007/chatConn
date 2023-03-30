@@ -36,6 +36,7 @@ class MessageController
      *     description="删除指定 id 的消息",
      *     operationId="deleteMessage",
      *     tags={"Message"},
+     *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         description="请求体",
@@ -85,6 +86,7 @@ class MessageController
      *     path="/message/lists",
      *     summary="获取消息列表",
      *     tags={"Message"},
+     *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
      *         name="page",
      *         in="query",

@@ -58,6 +58,7 @@ class SseController
      *     description="在指定的聊天中发送文本消息",
      *     operationId="text",
      *     tags={"Message"},
+     *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         description="请求体",
@@ -138,6 +139,7 @@ class SseController
      *     description="上传音频文件并将其转化为文本发送到指定的聊天中",
      *     operationId="audio",
      *     tags={"Message"},
+     *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         description="请求体",
@@ -216,6 +218,7 @@ class SseController
      *     description="Uploads an audio file for a chat specified by chat ID.",
      *     operationId="uploadAudio",
      *     tags={"Message"},
+     *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         description="The audio file to upload.",
@@ -286,6 +289,7 @@ class SseController
      *     tags={"Message"},
      *     summary="Get audio file",
      *     description="Returns the audio file as a stream",
+     *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
      *         name="filename",
      *         in="query",

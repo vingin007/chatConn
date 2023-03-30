@@ -26,6 +26,7 @@ class PackageController
      *     operationId="getAllPackages",
      *     tags={"Packages"},
      *     summary="Get all packages",
+     *     security={{"bearerAuth":{}}},
      *     description="Returns an array of all available packages",
      *     @OA\Response(
      *         response=200,
