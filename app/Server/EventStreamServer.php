@@ -13,6 +13,7 @@ use Hhxsv5\SSE\StopSSEException;
 use Hyperf\Context\Context;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\Event\EventDispatcher;
+use Hyperf\Redis\Redis;
 use Hyperf\Utils\ApplicationContext;
 use HyperfExtension\Auth\AuthManager;
 use HyperfExtension\Jwt\JwtFactory;
@@ -59,31 +60,21 @@ class EventStreamServer
         Context::set(ServerRequestInterface::class, $psr7Request);
         $jwt = make(JwtFactory::class)->make();
         $user = $this->authManager->guard('mini')->getProvider()->retrieveByCredentials(['id' => $jwt->getClaim('sub')]);
-        $text = $openaiService->text(['role' => 'user', 'content' => $message->content],$user, $chat,3000);
-        $result = $this->chatRecordService->addChatLog($user, $chat, $text, 'text', '', '', false);
-        $this->eventDispatcher->dispatch(new TextMessageSend($user));
-        // 将文本拆分为 5 个字符的数组
-        $chunks = str_split($text, 5);
-
-        // 发送每个字符组
-        foreach ($chunks as $chunk) {
-            $event = new Event(function () use ($chunk) {
-                if (empty($chunk)) {
-                    return false; // Return false if no new messages
-                }
-                $shouldStop = false; // Stop if something happens or to clear connection, browser will retry
-                if ($shouldStop) {
-                    throw new StopSSEException();
-                }
-                return json_encode(compact('chunk'));
-            }, 'answer');
-            (new SSESwoole($event, $request, $response))->start();
-        }
-        // 发送 SSE 事件，通知客户端关闭连接
-        $event = new Event(function () {
-            return '';
-        }, 'done');
-        (new SSESwoole($event, $request, $response))->start();
+        $text = $openaiService->text(['role' => 'user', 'content' => $message->content],$params['message_id'],$user, $chat,3000);
+        $event = new Event(function () use ($params) {
+            //redis fetch data
+            $redis = di()->get(Redis::class);
+            $chunk = $redis->lPop('message_answer:'.$params['message_id']);
+            if (empty($chunk)) {
+                return false; // Return false if no new messages
+            }
+            $shouldStop = false; // Stop if something happens or to clear connection, browser will retry
+            if ($shouldStop) {
+                throw new StopSSEException();
+            }
+            return json_encode(compact('chunk'));
+        }, 'answer');
+        (new SSESwoole($event, $request, $response))->start(0);
     }
     private function convertRequest(Request $swooleRequest): \Hyperf\HttpMessage\Server\Request
     {

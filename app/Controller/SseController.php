@@ -3,6 +3,7 @@
 declare(strict_types=1);
 namespace App\Controller;
 
+use App\Event\TextMessageSend;
 use App\Exception\BusinessException;
 use App\Middleware\Auth\RefreshTokenMiddleware;
 use App\Model\Chat;
@@ -316,5 +317,15 @@ class SseController
         $filename = $request->input('filename');
         $audioString = $gcsService->get($filename);
         return $this->success($audioString);
+    }
+
+    public function record(RequestInterface $request, ResponseInterface $response)
+    {
+        $message = Message::query()->findOrFail($request->input('message_id'));
+        $chat = Chat::query()->findOrFail($message->chat_id);
+        $user = $this->auth->guard('mini')->user();
+        $result = $this->chatRecordService->addChatLog($user, $chat, $message->content, 'text', '', '', false);
+        $this->eventDispatcher->dispatch(new TextMessageSend($user));
+        return $this->success($result);
     }
 }

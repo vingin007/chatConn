@@ -7,6 +7,7 @@ use GuzzleHttp\Client as GuzzleHttpClient;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
 use Hyperf\Di\Annotation\Inject;
+use Hyperf\Redis\Redis;
 use OpenAI;
 use Psr\EventDispatcher\EventDispatcherInterface;
 
@@ -16,6 +17,8 @@ class OpenaiService
     protected $client;
     protected $api_key;
 
+    protected $redis;
+
     #[Inject]
     private EventDispatcherInterface $eventDispatcher;
 
@@ -24,6 +27,7 @@ class OpenaiService
         $apiKeyService = new ApiKeyService();
         $this->api_key = $apiKeyService->getApiKey();
         $this->client = OpenAI::client($this->api_key);
+        $this->redis = di()->get(Redis::class);
     }
     public function validateApiKey(User $user)
     {
@@ -84,24 +88,24 @@ class OpenaiService
         return explode("data: ",$content);
     }
 
-    public function text($message,User $user,$chat,$max_tokens = 3000)
+    public function text($content,$message_id,User $user,$chat,$max_tokens = 3000)
     {
         if ($this->validateApiKey($user)){
             $this->api_key = $user->api_key;
         }
         try {
-            $info = $this->send($message,$user->id, $chat->id, $max_tokens);
+            $info = $this->send($content,$user->id, $chat->id, $max_tokens);
         } catch (GuzzleException $e) {
             throw $e;
         }
-        $message = '';
         foreach ($info as $match) {
             $result = json_decode($match, true);
             if (!empty($result['choices'][0]['delta']['content'])){
-                $message .= $result['choices'][0]['delta']['content'];
+                $this->redis->rPush('message_answer:'.$message_id, $result['choices'][0]['delta']['content']);
             }
         }
-        return $message;
+        $this->redis->rPush('message_answer:'.$message_id, '{done}');
+        return true;
     }
 
     public function audio($message,$user,$chat,$max_tokens = 3000)
