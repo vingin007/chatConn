@@ -43,6 +43,8 @@ class Order extends Model
      */
     protected ?string $table = 'orders';
 
+    protected string $primaryKey = 'order_no';
+
     /**
      * The attributes that are mass assignable.
      */
@@ -55,7 +57,7 @@ class Order extends Model
 
     public function user(): \Hyperf\Database\Model\Relations\BelongsTo
     {
-        return $this->belongsTo(User::class,'id','user_id');
+        return $this->belongsTo(User::class,'user_id','id');
     }
 
     public function package(): \Hyperf\Database\Model\Relations\BelongsTo

@@ -24,9 +24,7 @@ use Hyperf\Utils\Str;
 class AdminUserController
 {
     use ApiResponseTrait;
-    /**
-     * @PostMapping(path="assign-package")
-     */
+    #[RequestMapping(path: 'assign', methods: 'post')]
     public function assignPackage(RequestInterface $request, ResponseInterface $response)
     {
         $userId = $request->input('user_id');
@@ -64,6 +62,8 @@ class AdminUserController
         // 更新用户配额和过期时间
         $user->quota += $package->quota;
         $user->level = $package->level;
+        $user->paid = true;
+        $user->paid_time = Carbon::now();
         $user->expire_time = max($user->expire_time, $order->expired_at);
         $user->save();
 
@@ -73,15 +73,26 @@ class AdminUserController
     #[RequestMapping(path: 'users', methods: 'get')]
     public function getUsers(RequestInterface $request, ResponseInterface $response)
     {
+        $user_id = $request->input('user_id');
+        $start_date = $request->input('start_date');
+        $end_date = $request->input('end_date');
+        $keyword = $request->input('keyword');
         $currentPage = (int) $request->input('page', 1);
         $perPage = (int) $request->input('per_page', 10);
-        $users = User::query()->orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'page', $currentPage);
+        $userModel = User::query();
+        if(!empty($start_date) && !empty($end_date)){
+            $userModel = $userModel->whereBetween('created_at', [$start_date, $end_date]);
+        }
+        if (!empty($user_id)) {
+            $userModel = $userModel->where('id', $user_id);
+        }
+        if(!empty($keyword)){
+            $userModel = $userModel->where('mobile', $keyword);
+        }
+        $users = $userModel->orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'page', $currentPage);
         return $this->success(new Paginator($users, $perPage, $currentPage));
     }
 
-    /**
-     * @GetMapping(path="users/{id}")
-     */
     #[RequestMapping(path: 'detail', methods: 'get')]
     public function getUserDetail(RequestInterface $request, ResponseInterface $response)
     {
@@ -92,10 +103,11 @@ class AdminUserController
         }
 
         $orders = $user->orders()->orderByDesc('created_at')->where('status', Order::STATUS_PAID)->get();
-
+        $referrals = $user->referrals()->orderByDesc('created_at')->get();
         $data = [
             'user' => $user,
             'orders' => $orders,
+            'referrals' => $referrals
         ];
 
         return $this->success($data);

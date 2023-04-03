@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Event\OrderPaid;
 use App\Exception\BusinessException;
 use App\Job\CancelOrderJob;
 use App\Model\Package;
@@ -11,8 +12,10 @@ use App\Model\User;
 use Carbon\Carbon;
 use Hyperf\AsyncQueue\Driver\DriverFactory;
 use Hyperf\AsyncQueue\Driver\DriverInterface;
+use Hyperf\Di\Annotation\Inject;
 use Hyperf\Redis\Redis;
 use Hyperf\Utils\Str;
+use Psr\EventDispatcher\EventDispatcherInterface;
 
 class OrderService
 {
@@ -23,6 +26,8 @@ class OrderService
     protected $redis;
 
     protected DriverInterface $driver;
+    #[Inject]
+    protected EventDispatcherInterface $eventDispatcher;
 
     public function __construct(DriverFactory $driverFactory)
     {
@@ -36,7 +41,7 @@ class OrderService
             ->where('user_id', $user->id)
             ->where('package_id', $package->id)
             ->where('status', Order::STATUS_UNPAID)
-            ->whereBetween('created_at', [Carbon::now()->subMinutes(3), Carbon::now()])
+            ->whereBetween('created_at', [Carbon::now()->subMinutes(100), Carbon::now()])
             ->first();
         if ($currentorder){
             throw new BusinessException(400, '您有未支付的订单，请先支付');
@@ -45,7 +50,7 @@ class OrderService
         $unpaidOrders = Order::query()
             ->where('status', Order::STATUS_UNPAID)
             ->where('package_id', $package->id)
-            ->whereBetween('created_at', [Carbon::now()->subMinutes(3), Carbon::now()])
+            ->whereBetween('created_at', [Carbon::now()->subMinutes(100), Carbon::now()])
             ->count();
 
         if ($unpaidOrders >= 10) {
@@ -75,34 +80,43 @@ class OrderService
             $this->redis->lPush("order:amounts:{$package->id}", $amount);
             throw new BusinessException(400, '下单失败，请稍后再试');
         }
-        $this->driver->push(new CancelOrderJob($order->order_no),60*3);
+        $this->driver->push(new CancelOrderJob($order->order_no),60*100);
         return $order;
     }
 
-    public function payOrder($amount)
+    public function payOrder($amount,$sign,$timestamp)
     {
+        $secret = 'woshigecaigou';
+        $server_sign = new SignService($secret);
+        $_sign = $server_sign->generateSign($timestamp);
+        if($_sign != $sign){
+            return false;
+        }
+        $carbonInstance = Carbon::createFromTimestamp($timestamp);
+
+        $currentCarbonInstance = $carbonInstance->now();
         $order = Order::query()->where('amount', $amount)
-            ->whereBetween('created_at', [Carbon::now()->subMinutes(3), Carbon::now()])
             ->where('status', Order::STATUS_UNPAID)
             ->first();
         if (!$order) {
             $payment = new PaymentRecord();
-            $payment->payment_time = Carbon::now();
+            $payment->payment_time = $currentCarbonInstance;
             $payment->payment_amount = $amount;
             $payment->reason = '订单不存在';
             $payment->save();
+            return false;
         }
 
         if ($order->status != Order::STATUS_UNPAID) {
             $payment = new PaymentRecord();
-            $payment->payment_time = Carbon::now();
+            $payment->payment_time = $currentCarbonInstance;
             $payment->payment_amount = $amount;
             $payment->reason = '订单已支付或已取消';
             $payment->save();
         }
 
         $order->status = Order::STATUS_PAID;
-        $order->paid_at = Carbon::now();
+        $order->paid_time = Carbon::now();
 
         if (!$order->save()) {
             throw new BusinessException(400, 'Failed to pay order');
@@ -110,7 +124,7 @@ class OrderService
 
         // 将订单金额返还到 Redis 中
         $this->redis->lPush("order:amounts:{$order->package_id}", $order->amount);
-
+        $this->eventDispatcher->dispatch(new OrderPaid($order));
         return $order;
     }
 

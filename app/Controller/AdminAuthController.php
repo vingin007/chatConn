@@ -19,7 +19,7 @@ class AdminAuthController
     #[RequestMapping(path: 'login',methods: 'post')]
     public function login(RequestInterface $request): ResponseInterface
     {
-        $credentials = $request->inputs(['email', 'password']);
+        $credentials = $request->inputs(['name', 'password']);
         if (!$token = auth('admin')->attempt($credentials)) {
             return $this->setHttpCode(StatusCodeInterface::STATUS_UNAUTHORIZED)->fail('Unauthorized');
         }

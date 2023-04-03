@@ -6,12 +6,13 @@ namespace App\Listener;
 
 use App\Event\AudioMessageSend;
 use App\Event\OrderPaid;
+use Carbon\Carbon;
 use Hyperf\Event\Annotation\Listener;
 use Psr\Container\ContainerInterface;
 use Hyperf\Event\Contract\ListenerInterface;
 
 #[Listener]
-class UserQuotaDecListener implements ListenerInterface
+class PaidUserListener implements ListenerInterface
 {
     public function __construct(protected ContainerInterface $container)
     {
@@ -20,14 +21,16 @@ class UserQuotaDecListener implements ListenerInterface
     public function listen(): array
     {
         return [
-            AudioMessageSend::class
+            OrderPaid::class
         ];
     }
 
     public function process(object $event): void
     {
-        $user = $event->user;
-        $user->quota = $user->quota-1;
+        $order = $event->order;
+        $user = $order->user()->first();
+        $user->is_paid = true;
+        $user->paid_time = Carbon::now();
         $user->save();
     }
 }

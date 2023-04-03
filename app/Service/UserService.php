@@ -16,7 +16,7 @@ class UserService
     protected SmsService $smsService;
 
     #[Inject]
-    protected PackageService $packageService;
+    protected StatisticsService $packageService;
     /**
      * 创建用户.
      */
@@ -51,16 +51,18 @@ class UserService
         return true;
     }
 
-    public function bindMobile(User $user,$mobile,$code): User
+    public function bindMobile(User $user,$mobile,$code,$password): User
     {
         try {
             $this->smsService->verifyVerificationCode($mobile,$code);
         }catch (BusinessException $e){
             throw $e;
         }
-        $user->quota = 10;
+        $user->quota = 5;
         $user->expire_time = Carbon::now()->addMonth();
         $user->mobile = $mobile;
+        $user->password = $mobile;
+        $user->bind_time = Carbon::now();
         $user->save();
         return $user;
     }

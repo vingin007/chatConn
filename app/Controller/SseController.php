@@ -3,7 +3,7 @@
 declare(strict_types=1);
 namespace App\Controller;
 
-use App\Event\TextMessageSend;
+use App\Event\OrderPaid;
 use App\Exception\BusinessException;
 use App\Middleware\Auth\AdminAuthMiddleware;
 use App\Middleware\Auth\RefreshTokenMiddleware;
@@ -358,7 +358,7 @@ class SseController
             $chat = Chat::query()->findOrFail($request->input('chat_id'));
             $user = $this->auth->guard('mini')->user();
             $result = $this->chatRecordService->addChatLog($user, $chat, $message, 'text', '', '', false);
-            $this->eventDispatcher->dispatch(new TextMessageSend($user));
+            $this->eventDispatcher->dispatch(new OrderPaid($user));
         }catch (ModelNotFoundException $exception) {
             return $this->fail('指定的聊天不存在', 404);
         }

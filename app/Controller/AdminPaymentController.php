@@ -4,24 +4,28 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Event\OrderPaid;
 use App\Exception\BusinessException;
 use App\Middleware\Auth\AdminAuthMiddleware;
 use App\Model\Order;
 use App\Model\PaymentRecord;
 use App\Traits\ApiResponseTrait;
 use Hyperf\DbConnection\Db;
+use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\Middlewares;
 use Hyperf\HttpServer\Annotation\RequestMapping;
 use Hyperf\HttpServer\Contract\RequestInterface;
-use Hyperf\HttpServer\Contract\ResponseInterface;
 use Hyperf\Paginator\Paginator;
+use Psr\EventDispatcher\EventDispatcherInterface;
 
 #[Controller]
 #[Middlewares([AdminAuthMiddleware::class])]
 class AdminPaymentController
 {
     use ApiResponseTrait;
+    #[Inject]
+    protected EventDispatcherInterface $eventDispatcher;
     #[RequestMapping(path: 'lists', methods: 'get')]
     public function index(RequestInterface $request)
     {
@@ -30,7 +34,7 @@ class AdminPaymentController
         $payments = PaymentRecord::with('user')->orderBy('created_at', 'desc')->paginate($perPage, ['*'], 'page', $currentPage);
         return $this->success(new Paginator($payments, $perPage, $currentPage));
     }
-    #[RequestMapping(path: 'show', methods: 'get')]
+    #[RequestMapping(path: 'detail', methods: 'get')]
     public function show(RequestInterface $request)
     {
         $payment = PaymentRecord::with('user')->find($request->input('id'));
@@ -67,7 +71,7 @@ class AdminPaymentController
             $paymentRecord->payment_order_no = $order->order_no;
             $paymentRecord->user_id = $order->user_id;
             $paymentRecord->save();
-
+            $this->eventDispatcher->dispatch(new OrderPaid($order));
             // 提交事务
             Db::commit();
         } catch (\Exception $e) {
