@@ -98,23 +98,21 @@ class OrderService
         $order = Order::query()->where('amount', $amount)
             ->where('status', Order::STATUS_UNPAID)
             ->first();
+        $payment = new PaymentRecord();
         if (!$order) {
-            $payment = new PaymentRecord();
-            $payment->payment_time = $currentCarbonInstance;
-            $payment->payment_amount = $amount;
             $payment->reason = '订单不存在';
             $payment->save();
             return false;
         }
 
         if ($order->status != Order::STATUS_UNPAID) {
-            $payment = new PaymentRecord();
-            $payment->payment_time = $currentCarbonInstance;
-            $payment->payment_amount = $amount;
             $payment->reason = '订单已支付或已取消';
             $payment->save();
         }
-
+        $payment->reason = '';
+        $payment->payment_order_no = $order->order_no;
+        $payment->user_id = $order->user_id;
+        $payment->save();
         $order->status = Order::STATUS_PAID;
         $order->paid_time = Carbon::now();
 
