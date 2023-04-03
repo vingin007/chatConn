@@ -6,6 +6,7 @@ use App\Model\User;
 use GuzzleHttp\Client as GuzzleHttpClient;
 use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\RequestOptions;
+use Hyperf\DbConnection\Db;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\Redis\Redis;
 use OpenAI;
@@ -37,10 +38,25 @@ class OpenaiService
 
         return false;
     }
-    protected function send($message,$user_id,$chatId,$max_tokens = 3000)
+    protected function send($message,$user_id,$chatId,$max_tokens = 2000)
     {
         $messages = [];
-        $collections = Message::query()->where('chat_id',$chatId)->where('user_id',$user_id)->get(['id','content','is_user']);
+        $collections = DB::table('message')
+            ->where('chat_id',2)
+            ->where('user_id',10)
+            ->select('id', 'content', 'num', 'is_user', 'created_at')
+            ->selectSub(function ($query) {
+                $query->from('message AS m2')
+                    ->where('chat_id',2)
+                    ->where('user_id',10)
+                    ->selectRaw('SUM(num)')
+                    ->whereRaw('m2.created_at >= message.created_at')
+                    ->limit(1);
+            }, 'cumulative_tokens')
+            ->orderBy('created_at', 'desc')
+            ->having('cumulative_tokens', '<=', 2000)
+            ->limit(2000)
+            ->get();
         foreach ($collections as $collection){
             $role = $collection->is_user == 0 ? 'assistant' : 'user';
             $messages[] = ['role' => $role,'content' => $collection->content];

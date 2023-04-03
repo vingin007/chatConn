@@ -69,6 +69,7 @@ class AuthService
         $credentials = ['mobile' => $mobile,'password' => $password];
         $token = $this->auth->guard($guard)->attempt($credentials);
         if(!$token) throw new BusinessException(BusinessException::UNAUTHORIZED,'用户名或密码错误');
+
         return [
             'access_token' => $token,
             'token_type' => 'bearer',

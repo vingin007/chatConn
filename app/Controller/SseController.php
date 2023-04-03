@@ -364,4 +364,25 @@ class SseController
         }
         return $this->success($result);
     }
+    #[RequestMapping(path: 'lists',methods: 'get')]
+    public function lists(RequestInterface $request, ResponseInterface $response)
+    {
+        $rows = DB::table('message')
+            ->where('chat_id',2)
+            ->where('user_id',10)
+            ->select('id', 'content', 'num', 'is_user', 'created_at')
+            ->selectSub(function ($query) {
+                $query->from('message AS m2')
+                    ->where('chat_id',2)
+                    ->where('user_id',10)
+                    ->selectRaw('SUM(num)')
+                    ->whereRaw('m2.created_at >= message.created_at')
+                    ->limit(1);
+            }, 'cumulative_tokens')
+            ->orderBy('created_at', 'desc')
+            ->having('cumulative_tokens', '<=', 2000)
+            ->limit(2000)
+            ->get();
+        return $response->json($rows);
+    }
 }
