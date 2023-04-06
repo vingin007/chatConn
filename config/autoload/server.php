@@ -27,7 +27,7 @@ return [
                 Event::ON_REQUEST => [Hyperf\HttpServer\Server::class, 'onRequest'],
             ],
         ],
-        [
+        /*[
             'name' => 'event_stream',
             'type' => Server::SERVER_HTTP,
             'host' => '0.0.0.0',
@@ -36,7 +36,7 @@ return [
             'callbacks' => [
                 Event::ON_REQUEST => [App\Server\EventStreamServer::class, 'onRequest'],
             ],
-        ],
+        ],*/
     ],
     'settings' => [
         Constant::OPTION_ENABLE_COROUTINE => true,
