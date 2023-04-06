@@ -9,10 +9,8 @@ declare(strict_types=1);
  * @contact  group@hyperf.io
  * @license  https://github.com/hyperf/hyperf/blob/master/LICENSE
  */
-
-use App\Factory\MailerFactory;
-use Symfony\Component\Mailer\MailerInterface;
-
 return [
-    MailerInterface::class => MailerFactory::class,
+    'locale' => 'zh_CN',
+    'fallback_locale' => 'en',
+    'path' => BASE_PATH . '/storage/languages',
 ];

@@ -57,9 +57,11 @@ class OpenaiService
             ->having('cumulative_tokens', '<=', 2000)
             ->limit(2000)
             ->get();
-        foreach ($collections as $collection){
-            $role = $collection->is_user == 0 ? 'assistant' : 'user';
-            $messages[] = ['role' => $role,'content' => $collection->content];
+        if (!empty($collections)){
+            foreach ($collections as $collection){
+                $role = $collection->is_user == 0 ? 'assistant' : 'user';
+                $messages[] = ['role' => $role,'content' => $collection->content];
+            }
         }
         $messages[] = $message;
         $client = new GuzzleHttpClient();
@@ -104,7 +106,7 @@ class OpenaiService
         return explode("data: ",$content);
     }
 
-    public function text($content,$message_id,User $user,$chat,$max_tokens = 3000)
+    public function text($content,User $user,$chat,$max_tokens = 2000)
     {
         if ($this->validateApiKey($user)){
             $this->api_key = $user->api_key;
@@ -114,17 +116,17 @@ class OpenaiService
         } catch (GuzzleException $e) {
             throw $e;
         }
+        $content = '';
         foreach ($info as $match) {
             $result = json_decode($match, true);
             if (!empty($result['choices'][0]['delta']['content'])){
-                $this->redis->rPush('message_answer:'.$message_id, $result['choices'][0]['delta']['content']);
+                $content .= $result['choices'][0]['delta']['content'];
             }
         }
-        $this->redis->rPush('message_answer:'.$message_id, '{done}');
-        return true;
+        return $content;
     }
 
-    public function audio($message,$user,$chat,$max_tokens = 3000)
+    public function audio($message,$user,$chat,$max_tokens = 2000)
     {
         try {
             $info = $this->send($message,$user->id, $chat->id, $max_tokens);

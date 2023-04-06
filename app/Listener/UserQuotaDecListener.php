@@ -6,6 +6,7 @@ namespace App\Listener;
 
 use App\Event\AudioMessageSend;
 use App\Event\OrderPaid;
+use App\Event\TextMessageSend;
 use Hyperf\Event\Annotation\Listener;
 use Psr\Container\ContainerInterface;
 use Hyperf\Event\Contract\ListenerInterface;
@@ -20,7 +21,8 @@ class UserQuotaDecListener implements ListenerInterface
     public function listen(): array
     {
         return [
-            AudioMessageSend::class
+            AudioMessageSend::class,
+            TextMessageSend::class
         ];
     }
 

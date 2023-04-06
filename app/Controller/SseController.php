@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Event\OrderPaid;
+use App\Event\TextMessageSend;
 use App\Exception\BusinessException;
 use App\Middleware\Auth\AdminAuthMiddleware;
 use App\Middleware\Auth\RefreshTokenMiddleware;
@@ -14,6 +15,7 @@ use App\Service\ChatRecordService;
 use App\Service\FilterWordService;
 use App\Service\GcsService;
 use App\Service\OpenaiService;
+use App\Service\S3Service;
 use App\Traits\ApiResponseTrait;
 use FFMpeg\Exception\InvalidArgumentException;
 use FFMpeg\Exception\RuntimeException;
@@ -33,6 +35,7 @@ use Hyperf\RateLimit\Exception\RateLimitException;
 use HyperfExtension\Auth\Access\AuthorizesRequests;
 use HyperfExtension\Auth\AuthManager;
 use HyperfExtension\Auth\Exceptions\AuthorizationException;
+use HyperfExtension\Jwt\JwtFactory;
 use League\Flysystem\FilesystemException;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
@@ -51,9 +54,12 @@ class SseController
     protected AudioService $audioService;
     #[Inject]
     protected EventDispatcherInterface $eventDispatcher;
-
     #[Inject]
     protected ChatRecordService $chatRecordService;
+    #[Inject]
+    protected S3Service $s3Service;
+    #[Inject]
+    protected OpenaiService $openaiService;
 
     /**
      * @OA\Post(
@@ -124,20 +130,26 @@ class SseController
         Db::beginTransaction();
         try {
             $chat = Chat::query()->findOrFail($chatId);
+            if ($user->quota < 1){
+                return $this->fail('您的额度不足', 403);
+            }
             if (!empty($file)){
                 $message = $this->audioService->upload($user, $chat, $file);
             }else{
                 $message = $this->chatRecordService->addChatLog($user, $chat, $content, 'text', '', '', true);
             }
+            $answer_content = $this->openaiService->text($message->content,$user,$chat);
+            $answer = $this->chatRecordService->addChatLog($user, $chat, $answer_content, 'text', '', '', false);
+            $this->eventDispatcher->dispatch(new TextMessageSend($user));
             Db::commit();
-        }catch (GuzzleException|ModelNotFoundException|NotFoundExceptionInterface|ContainerExceptionInterface $exception){
+        }catch (GuzzleException|ModelNotFoundException $exception){
             Db::rollBack();
            return $this->fail($exception->getMessage());
         }catch (RateLimitException $exception) {
             Db::rollBack();
             return $this->fail('发送通道拥挤，请等一秒', 422);
         }
-        return $message;
+        return $answer;
     }
     /**
      * @OA\Post(
@@ -328,61 +340,10 @@ class SseController
      * )
      */
     #[RequestMapping(path: 'getaudio',methods: 'get')]
-    public function getaudio(RequestInterface $request, ResponseInterface $response,GcsService $gcsService)
+    public function getaudio(RequestInterface $request, ResponseInterface $response)
     {
         $filename = $request->input('filename');
-        $audioString = $gcsService->get($filename);
+        $audioString = $this->s3Service->getFileUrl($filename);
         return $this->success($audioString);
-    }
-    /**
-     * @OA\Post(
-     *     path="/sse/record",
-     *     operationId="addChatRecord",
-     *     summary="添加聊天记录",
-     *     description="添加一条聊天记录，并返回新添加的记录信息。",
-     *     tags={"Message"},
-     *     security={{"bearerAuth":{}}},
-     *     requestBody={"$ref": "#/components/requestBodies/AddChatRecordRequestBody"},
-     *     @OA\Response(response=200, description="成功", @OA\JsonContent(ref="#/components/schemas/ChatRecord")),
-     *     @OA\Response(response=400, description="请求参数错误"),
-     *     @OA\Response(response=401, description="用户未认证或认证失败"),
-     *     @OA\Response(response=404, description="聊天记录不存在"),
-     *     @OA\Response(response=500, description="服务器内部错误")
-     * )
-     */
-    #[RequestMapping(path: 'record',methods: 'post')]
-    public function record(RequestInterface $request, ResponseInterface $response)
-    {
-        $message = $request->input('message');
-        try {
-            $chat = Chat::query()->findOrFail($request->input('chat_id'));
-            $user = $this->auth->guard('mini')->user();
-            $result = $this->chatRecordService->addChatLog($user, $chat, $message, 'text', '', '', false);
-            $this->eventDispatcher->dispatch(new OrderPaid($user));
-        }catch (ModelNotFoundException $exception) {
-            return $this->fail('指定的聊天不存在', 404);
-        }
-        return $this->success($result);
-    }
-    #[RequestMapping(path: 'lists',methods: 'get')]
-    public function lists(RequestInterface $request, ResponseInterface $response)
-    {
-        $rows = DB::table('message')
-            ->where('chat_id',2)
-            ->where('user_id',10)
-            ->select('id', 'content', 'num', 'is_user', 'created_at')
-            ->selectSub(function ($query) {
-                $query->from('message AS m2')
-                    ->where('chat_id',2)
-                    ->where('user_id',10)
-                    ->selectRaw('SUM(num)')
-                    ->whereRaw('m2.created_at >= message.created_at')
-                    ->limit(1);
-            }, 'cumulative_tokens')
-            ->orderBy('created_at', 'desc')
-            ->having('cumulative_tokens', '<=', 2000)
-            ->limit(2000)
-            ->get();
-        return $response->json($rows);
     }
 }

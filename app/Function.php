@@ -92,3 +92,20 @@ if (!function_exists('di')) {
         return ApplicationContext::getContainer();
     }
 }
+if (!function_exists('checkInputType')) {
+    function checkInputType($input) {
+        // 电子邮件正则表达式
+        $emailPattern = "/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/";
+
+        // 手机号正则表达式（这里以中国大陆手机号为例，您可以根据需要调整）
+        $phonePattern = "/^1[3-9]\d{9}$/";
+
+        if (preg_match($emailPattern, $input)) {
+            return "email";
+        } elseif (preg_match($phonePattern, $input)) {
+            return "phone";
+        } else {
+            return false;
+        }
+    }
+}

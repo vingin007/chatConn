@@ -8,6 +8,7 @@ use App\Exception\BusinessException;
 use App\Model\Chat;
 use App\Model\Message;
 use App\Model\User;
+use Aws\S3\Exception\S3Exception;
 use Exception;
 use FFMpeg\Exception\InvalidArgumentException;
 use FFMpeg\Exception\RuntimeException;
@@ -37,7 +38,10 @@ class AudioService
     protected OpenaiService $openaiService;
     #[Inject]
     protected EventDispatcherInterface $eventDispatcher;
-
+    #[Inject]
+    protected S3Service $s3Service;
+    #[Inject]
+    protected PollyService $pollyService;
     protected FilterWordService $filterWordService;
 
     public function upload(User $user,Chat $chat,$file)
@@ -49,49 +53,26 @@ class AudioService
         if ($file->getClientMediaType() !== 'audio/webm' && $file->getClientMediaType() !== 'audio/mpeg' && $file->getClientMediaType() !== 'audio/x-aac') {
             throw new BusinessException(400,'Unsupported audio format');
         }
-        $fileSystem = ApplicationContext::getContainer()->get(FilesystemFactory::class)->get('local');
-        $tempPath = '/temp';
-        $filePath = $tempPath . '/' . uniqid() . '.' . $file->getExtension();
-        $fileRealPath = BASE_PATH.'/runtime/storage'.$filePath;
+        $filesystem = ApplicationContext::getContainer()->get(FilesystemFactory::class)->get('local');
+        $filename = $user->id . '_' . uniqid() . '.mp3';
         try {
-            $stream = fopen($file->getRealPath(), 'r+');
-            $fileSystem->writeStream($filePath, $stream);
+            $stream = fopen($file->getRealPath(),'r');
+            $filePath = '/runtime/storage/'.$filename;
+            $filesystem->writeStream($filename, $stream);
+            $this->s3Service->uploadFile($filename, $stream);
             fclose($stream);
-        } catch (FilesystemException $e) {
-            throw $e;
-        }
-        $filename = $user->id . '_' . uniqid() . '.wav';
-        $flacFilePath = BASE_PATH.'/runtime/storage'.$tempPath . '/' . $filename;
-        try {
-            $ffmpeg = FFMpeg::create();
-            $audio = $ffmpeg->open($fileRealPath);
-            $audio->save(new Wav(), $flacFilePath);
-
-            // 将转换后的FLAC文件上传到Google Cloud Storage
-            $this->gcsService->upload($filename, fopen($flacFilePath, 'r'));
-            $store_url = $this->gcsService->get($filename);
-            $message = $this->openaiService->convertAudioToText($flacFilePath);
+            $message = $this->openaiService->convertAudioToText(BASE_PATH.$filePath);
             //写聊天记录
-            $message = $this->chatRecordService->addChatLog($user, $chat, $message, 'audio', $filename, $store_url, true);
-            if ($fileSystem->has($filePath)) {
-                $fileSystem->delete($filePath);
+            $message = $this->chatRecordService->addChatLog($user, $chat, $message, 'audio', $filename, '', true);
+            if($filesystem->has($filename)){
+                $filesystem->delete($filename);
             }
-            if ($fileSystem->has($flacFilePath)) {
-                $fileSystem->delete($flacFilePath);
-            }
-        }catch (RuntimeException|InvalidArgumentException $e){
-            if ($fileSystem->has($filePath)) {
-                $fileSystem->delete($filePath);
+        }catch (RuntimeException|InvalidArgumentException|FilesystemException $e){
+            if($filesystem->has($filename)){
+                $filesystem->delete($filename);
             }
             Db::rollBack();
             throw $e;
-        }catch (BusinessException $e){
-            if ($fileSystem->has($filePath)) {
-                $fileSystem->delete($filePath);
-            }
-            if ($fileSystem->has($flacFilePath)) {
-                $fileSystem->delete($flacFilePath);
-            }
         }
         return $message;
     }
@@ -104,13 +85,14 @@ class AudioService
             if (empty($stream_content)) {
                 throw new BusinessException('ai回复结果为空');
             }
-            $store_name = 'answer_' . $user->id. '_' . uniqid() . '.wav';
-            //转回复语音
-            $result = $this->ttsService->convertTextToAudio($stream_content, $store_name);
+            $stream = $this->pollyService->textToSpeech($stream_content);
+            $store_name = 'answer_'.$user->id . '_' . uniqid() . '.mp3';
+            //上传到gcs
+            $result = $this->s3Service->uploadFile($store_name, $stream);
             //写数据库,如果写数据库失败就
-            $message = $this->chatRecordService->addChatLog($user, $chat, $stream_content, 'audio', $store_name, $result['url'], false);
+            $message = $this->chatRecordService->addChatLog($user, $chat, $stream_content, 'audio', $store_name, '', false);
             $this->eventDispatcher->dispatch(new AudioMessageSend($user));
-        }catch (ApiException|ValidationException|GuzzleException|BusinessException $e){
+        }catch (ApiException|S3Exception|GuzzleException|BusinessException $e){
             Db::rollBack();
             throw $e;
         }

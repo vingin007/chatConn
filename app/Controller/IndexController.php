@@ -6,12 +6,12 @@ namespace App\Controller;
 use Hyperf\HttpServer\Annotation\AutoController;
 use Hyperf\HttpServer\Contract\RequestInterface;
 use Hyperf\HttpServer\Contract\ResponseInterface;
-
+use function Hyperf\ViewEngine\view;
 #[AutoController]
 class IndexController
 {
     public function index(RequestInterface $request, ResponseInterface $response)
     {
-        return $response->raw('Hello Hyperf!');
+        return view('email_verification',['code' => '3332211']);
     }
 }

@@ -4,7 +4,7 @@ namespace App\Service;
 use App\Exception\BusinessException;
 use App\Model\Chat;
 use App\Model\User;
-use Hyperf\Utils\Str;
+use Carbon\Carbon;
 use HyperfExtension\Auth\Contracts\AuthManagerInterface;
 use HyperfExtension\Hashing\Hash;
 use HyperfExtension\Jwt\Contracts\JwtFactoryInterface;
@@ -30,16 +30,17 @@ class AuthService
      *
      * @return array|string
      */
-    public function registerAndLogin($guard): array
+    public function registerAndLogin($guard,$username,$password,$mobile = '',$email = ''): array
     {
-        // 生成随机用户名和密码
-        $username = Str::random(10) . time() . rand(100, 999);
-        $password = '123456';
-
         // 创建用户记录
         $user = User::create([
             'username' => $username,
             'password' => Hash::make($password),
+            'mobile' => $mobile,
+            'email' => $email,
+            'quota' => 5,
+            'expire_time' => Carbon::now('Asia/Shanghai')->addMonth(),
+            'bind_time' => Carbon::now('Asia/Shanghai'),
         ]);
 
         // 登录用户
@@ -50,6 +51,7 @@ class AuthService
         $chat->user_id = $user->id;
         $chat->save();
         return [
+            'chat_id' => $chat->id,
             'access_token' => $token,
             'token_type' => 'bearer',
             'expire_in' => make(JwtFactoryInterface::class)->make()->getPayloadFactory()->getTtl()
