@@ -21,10 +21,10 @@ class MailService
         $body = view('email_verification', ['code' => $verificationCode])->render();
 
         $email = (new Email())
-            ->from('wxl199293@gmail.com')
+            ->from('2681977867@qq.com')
             ->to($toEmail)
             ->subject($subject)
-            ->text($body);
+            ->html($body);
 
         $this->mailer->send($email);
     }

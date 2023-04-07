@@ -12,6 +12,7 @@ use Hyperf\HttpServer\Annotation\Middlewares;
 use Hyperf\HttpServer\Annotation\RequestMapping;
 use Hyperf\HttpServer\Contract\RequestInterface;
 use Hyperf\HttpServer\Contract\ResponseInterface;
+use Hyperf\RateLimit\Annotation\RateLimit;
 use OpenApi\Annotations as OA;
 #[Controller]
 #[Middlewares([RefreshTokenMiddleware::class])]
@@ -62,7 +63,7 @@ class ImageController
      *     )
      * )
      */
-
+    #[RateLimit(create: 1, consume: 1, capacity: 1)]
     #[RequestMapping(path: 'generate')]
     public function generate_image(RequestInterface $request, ResponseInterface $response)
     {
@@ -137,7 +138,7 @@ class ImageController
      *     ),
      * )
      */
-
+    #[RateLimit(create: 1, consume: 1, capacity: 1)]
     #[RequestMapping(path: 'edit')]
     public function edit_image(RequestInterface $request, ResponseInterface $response)
     {
@@ -190,7 +191,7 @@ class ImageController
      *     )
      * )
      */
-
+    #[RateLimit(create: 1, consume: 1, capacity: 1)]
     #[RequestMapping(path: 'variate')]
     public function variation_image(RequestInterface $request, ResponseInterface $response)
     {

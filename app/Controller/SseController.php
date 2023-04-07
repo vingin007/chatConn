@@ -119,7 +119,7 @@ class SseController
      * )
      *
      */
-    #[RateLimit(create: 1,capacity: 4)]
+    #[RateLimit(create: 1, consume: 1, capacity: 1)]
     #[RequestMapping(path: 'text',methods: 'post')]
     public function text(RequestInterface $request, ResponseInterface $response,OpenaiService $openaiService,FilterWordService $filterWordService)
     {
@@ -210,7 +210,7 @@ class SseController
      * )
      */
     #[RequestMapping(path: 'audio',methods: 'post')]
-    #[RateLimit(create: 1,capacity: 4)]
+    #[RateLimit(create: 1, consume: 1, capacity: 1)]
     public function audio(RequestInterface $request, ResponseInterface $response)
     {
         $chatId = $request->input('chat_id', '');
