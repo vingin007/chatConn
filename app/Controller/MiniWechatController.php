@@ -176,7 +176,7 @@ class MiniWechatController
                 if(strlen($input) > 6 && preg_match('/^[a-zA-Z0-9]+$/', $input)) {
                     $redis->hSet($sessionId,'password',$input);
                     $redis->hSet($sessionId,'step','2');
-                    $result = ['message' => '请您确认一下您的用户名和密码：\r\n 用户名：'.$redis->hGet($sessionId,'username').' \r\n 密码：'.$input.' \r\n 如果信息无误，请回复“确认”，如需修改，请输入“修改用户名”或"修改密码"。'];
+                    $result = ['message' => '请您确认一下您的用户名和密码：\n 用户名：'.$redis->hGet($sessionId,'username').' \n 密码：'.$input.' \n 如果信息无误，请回复“确认”，如需修改，请输入“修改用户名”或"修改密码"。'];
                 }else{
                     $result = ['message' => '密码输入有误（至少6位，包含数字和字母），请重新输入：'];
                 }
@@ -205,13 +205,13 @@ class MiniWechatController
             case 3:
                 $redis->hSet($sessionId,'username',$input);
                 $redis->hSet($sessionId,'step','2');
-                $result = ['message' => '用户名修改成功！请您再次确认一下您的用户名和密码：\r\n 用户名：'.$redis->hGet($sessionId,'username').' \r\n 密码：'.$input.' \r\n 如果信息无误，请回复“确认”，如需修改，请输入“修改用户名”或"修改密码"。'];
+                $result = ['message' => '用户名修改成功！请您再次确认一下您的用户名和密码：\n 用户名：'.$redis->hGet($sessionId,'username').' \n 密码：'.$input.' \n 如果信息无误，请回复“确认”，如需修改，请输入“修改用户名”或"修改密码"。'];
                 break;
 
             case 4:
                 $redis->hSet($sessionId,'password',$input);
                 $redis->hSet($sessionId,'step','2');
-                $result = ['message' => '密码修改成功！请您再次确认一下您的用户名和密码：\r\n 用户名：'.$redis->hGet($sessionId,'username').' \r\n 密码：'.$input.' \r\n 如果信息无误，请回复“确认”，如需修改，请输入“修改用户名”或"修改密码"。'];
+                $result = ['message' => '密码修改成功！请您再次确认一下您的用户名和密码：\n 用户名：'.$redis->hGet($sessionId,'username').' \n 密码：'.$input.' \n 如果信息无误，请回复“确认”，如需修改，请输入“修改用户名”或"修改密码"。'];
                 break;
             case 5:
                 $type = checkInputType($input);

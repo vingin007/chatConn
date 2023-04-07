@@ -138,7 +138,8 @@ class SseController
             }else{
                 $message = $this->chatRecordService->addChatLog($user, $chat, $content, 'text', '', '', true);
             }
-            $answer_content = $this->openaiService->text($message->content,$user,$chat);
+            $content = ['role' => 'user', 'content' => $message->content];
+            $answer_content = $this->openaiService->text($content,$user,$chat);
             $answer = $this->chatRecordService->addChatLog($user, $chat, $answer_content, 'text', '', '', false);
             $this->eventDispatcher->dispatch(new TextMessageSend($user));
             Db::commit();
