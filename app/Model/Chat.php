@@ -8,12 +8,13 @@ use Hyperf\DbConnection\Model\Model;
 use OpenApi\Annotations as OA;
 
 /**
- * @OA\Schema(
- *     schema="Chat",
- *     @OA\Property(property="id", type="integer", description="聊天ID"),
- *     @OA\Property(property="name", type="string", description="聊天名称"),
- *     @OA\Property(property="type", type="integer", description="聊天类型")
- * )
+ * @property int $id 
+ * @property int $type 
+ * @property int $user_id 
+ * @property \Carbon\Carbon $created_at 
+ * @property \Carbon\Carbon $updated_at 
+ * @property string $name 
+ * @property-read \Hyperf\Database\Model\Collection|Message[] $messages 
  */
 class Chat extends Model
 {

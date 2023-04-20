@@ -2,7 +2,7 @@
 
 namespace App\Server;
 
-use App\Event\OrderPaid;
+use App\Event\TransOrderPaid;
 use App\Model\Chat;
 use App\Model\Message;
 use App\Service\ChatRecordService;

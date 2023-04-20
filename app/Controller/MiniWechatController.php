@@ -5,6 +5,7 @@ namespace App\Controller;
 
 use App\Exception\BusinessException;
 use App\Service\AuthService;
+use App\Service\MailService;
 use OpenApi\Annotations as OA;
 use App\Traits\ApiResponseTrait;
 use Hyperf\Di\Annotation\Inject;
@@ -13,6 +14,7 @@ use Hyperf\HttpServer\Annotation\RequestMapping;
 use Hyperf\HttpServer\Contract\RequestInterface;
 use Overtrue\EasySms\EasySms;
 use Psr\Http\Message\ResponseInterface;
+use Symfony\Component\Mailer\MailerInterface;
 
 #[Controller]
 class MiniWechatController
@@ -21,6 +23,8 @@ class MiniWechatController
     protected $sms;
     #[Inject]
     protected AuthService $authService;
+    #[Inject]
+    private MailerInterface $mailer;
     /**
      * @OA\Post(
      *     path="/mini_wechat/login",
@@ -220,8 +224,8 @@ class MiniWechatController
                 if ($type == 'email') {
                     $redis->hSet($sessionId, 'email', $input);
                     $redis->hSet($sessionId, 'step', '6');
-
-
+                    $mailService = new MailService($this->mailer);
+                    $mailService->sendVerificationEmail($input, $code);
                     $result = ['message' => '已经向您的邮箱发送了一条带有验证码的邮件，请查收并告诉我验证码是多少：','code' => $code];
                 }elseif ($type == 'mobile') {
                     $redis->hSet($sessionId, 'mobile', $input);

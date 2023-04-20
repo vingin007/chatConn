@@ -143,15 +143,14 @@ class OpenaiService
         return $content;
     }
 
-    public function convertAudioToText($filepath): string
+    public function convertAudioToText($filepath,$fetch_lang = false)
     {
         $response = $this->client->audio()->transcribe([
             'model' => 'whisper-1',
             'file' => fopen($filepath, 'r'),
             'response_format' => 'verbose_json',
         ]);
-        //$response->language; // 'english'
-        return $response->text; // 'Hello, how are you?'
+        return $fetch_lang ? $response :$response->text; // 'Hello, how are you?'
 
     }
 
@@ -191,5 +190,16 @@ class OpenaiService
         ]);
         $response = $response->toArray();
         return ['url' =>$response['data'][0]['url']];
+    }
+
+    public function chat($prompt)
+    {
+        $response = $this->client->chat()->create([
+            'model' => 'gpt-3.5-turbo',
+            'messages' => $prompt,
+            'max_tokens' => 2000,
+        ]);
+        $response = $response->toArray();
+        return $response['choices'][0]['message']['content'];
     }
 }

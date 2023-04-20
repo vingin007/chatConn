@@ -109,3 +109,79 @@ if (!function_exists('checkInputType')) {
         }
     }
 }
+if (!function_exists('dtw_distance')) {
+    function dtw_distance($s1, $s2) {
+        $s1_len = strlen($s1);
+        $s2_len = strlen($s2);
+        $matrix = [];
+
+        for ($i = 0; $i <= $s1_len; ++$i) {
+            $matrix[$i] = [];
+            for ($j = 0; $j <= $s2_len; ++$j) {
+                $matrix[$i][$j] = INF;
+            }
+        }
+
+        $matrix[0][0] = 0;
+
+        for ($i = 1; $i <= $s1_len; ++$i) {
+            for ($j = 1; $j <= $s2_len; ++$j) {
+                $cost = abs(ord($s1[$i - 1]) - ord($s2[$j - 1]));
+                $matrix[$i][$j] = $cost + min(
+                        $matrix[$i - 1][$j],
+                        $matrix[$i][$j - 1],
+                        $matrix[$i - 1][$j - 1]
+                    );
+            }
+        }
+
+        return $matrix[$s1_len][$s2_len];
+    }
+}
+
+if (!function_exists('levenshtein_distance')) {
+    function levenshtein_distance($s1, $s2) {
+        $s1_len = strlen($s1);
+        $s2_len = strlen($s2);
+        $matrix = [];
+
+        for ($i = 0; $i <= $s1_len; ++$i) {
+            $matrix[$i] = [];
+            for ($j = 0; $j <= $s2_len; ++$j) {
+                if ($i == 0) {
+                    $matrix[$i][$j] = $j;
+                } elseif ($j == 0) {
+                    $matrix[$i][$j] = $i;
+                } else {
+                    $matrix[$i][$j] = 0;
+                }
+            }
+        }
+
+        for ($i = 1; $i <= $s1_len; ++$i) {
+            for ($j = 1; $j <= $s2_len; ++$j) {
+                $cost = ($s1[$i - 1] == $s2[$j - 1]) ? 0 : 1;
+                $matrix[$i][$j] = min(
+                    $matrix[$i - 1][$j] + 1,
+                    $matrix[$i][$j - 1] + 1,
+                    $matrix[$i - 1][$j - 1] + $cost
+                );
+            }
+        }
+
+        return $matrix[$s1_len][$s2_len];
+    }
+}
+if (!function_exists('secondsToTimecode')) {
+    function secondsToTimecode($seconds)
+    {
+        $hours = floor(bcdiv($seconds, 3600, 6));
+        $minutes = floor(bcdiv(bcmod($seconds, 3600), 60, 6));
+        $seconds_int = floor(bcmod($seconds, 60));
+        $milliseconds = bcmul(bcsub($seconds, floor($seconds), 6), 1000, 0);
+
+        return sprintf('%02d:%02d:%02d,%03d', $hours, $minutes, $seconds_int, $milliseconds);
+    }
+
+
+}

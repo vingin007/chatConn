@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Service\OrderService;
+use App\Service\TransOrderService;
 use App\Traits\ApiResponseTrait;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
@@ -19,7 +19,7 @@ class PaymentCallbackController
 {
     use ApiResponseTrait;
     #[Inject]
-    protected OrderService $orderService;
+    protected TransOrderService $orderService;
     protected LoggerInterface $logger;
 
     public function __construct(LoggerFactory $loggerFactory)

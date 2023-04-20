@@ -7,7 +7,7 @@ use App\Model\Order;
 use App\Model\Package;
 use App\Model\PaymentRecord;
 use App\Model\User;
-use App\Service\OrderService;
+use App\Service\TransOrderService;
 use Hyperf\AsyncQueue\Driver\DriverFactory;
 use Hyperf\Redis\Redis;
 use Hyperf\Utils\ApplicationContext;
@@ -16,7 +16,7 @@ use PHPUnit\Framework\TestCase;
 
 class OrderServiceTest extends TestCase
 {
-    protected OrderService $orderService;
+    protected TransOrderService $orderService;
     protected $redis;
     protected $user;
     protected $package;
@@ -40,7 +40,7 @@ class OrderServiceTest extends TestCase
         ]);
 
         // 注入依赖
-        $this->orderService = make(OrderService::class);
+        $this->orderService = make(TransOrderService::class);
         $this->driverFactory = make(DriverFactory::class);
         $this->redis = ApplicationContext::getContainer()->get(Redis::class);
     }
@@ -62,7 +62,7 @@ class OrderServiceTest extends TestCase
         $this->redis->set($redisKey, '[]');
 
         // 调用生成订单方法
-        $orderService = make(OrderService::class);
+        $orderService = make(TransOrderService::class);
         $order = $orderService->generateOrder($package, $user);
 
         // 断言订单价格为加量包原价

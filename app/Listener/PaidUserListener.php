@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Listener;
 
 use App\Event\AudioMessageSend;
-use App\Event\OrderPaid;
+use App\Event\TransOrderPaid;
 use Carbon\Carbon;
 use Hyperf\Event\Annotation\Listener;
 use Psr\Container\ContainerInterface;
@@ -21,7 +21,7 @@ class PaidUserListener implements ListenerInterface
     public function listen(): array
     {
         return [
-            OrderPaid::class
+            TransOrderPaid::class
         ];
     }
 

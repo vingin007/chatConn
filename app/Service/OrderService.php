@@ -2,7 +2,7 @@
 
 namespace App\Service;
 
-use App\Event\OrderPaid;
+use App\Event\TransOrderPaid;
 use App\Exception\BusinessException;
 use App\Job\CancelOrderJob;
 use App\Model\Package;
@@ -122,7 +122,7 @@ class OrderService
 
         // 将订单金额返还到 Redis 中
         $this->redis->lPush("order:amounts:{$order->package_id}", $order->amount);
-        $this->eventDispatcher->dispatch(new OrderPaid($order));
+        $this->eventDispatcher->dispatch(new TransOrderPaid($order));
         return $order;
     }
 

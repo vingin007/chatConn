@@ -52,7 +52,6 @@
         "hyperf/view-engine": "^3.0",
         "hyperf/watcher": "~3.0.0",
         "irazasyed/telegram-bot-sdk": "^3.0",
-        "lustre/php-dfa-sensitive": "^1.4",
         "openai-php/client": "dev-main",
         "overtrue/easy-sms": "^2.4",
         "php-ffmpeg/php-ffmpeg": "^1.1",
@@ -61,7 +60,8 @@
         "symfony/mailer": "^6.2",
         "symfony/security-core": "^5.2",
         "w7corp/easywechat": "^6.10",
-        "zircote/swagger-php": "^4.7"
+        "zircote/swagger-php": "^4.7",
+      "ext-bcmath": "*"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.0",

@@ -7,6 +7,14 @@ namespace App\Model;
 use Hyperf\DbConnection\Model\Model;
 
 /**
+ * @property int $id 
+ * @property string $payment_time 
+ * @property string $payment_amount 
+ * @property string $payment_order_no 
+ * @property int $user_id 
+ * @property \Carbon\Carbon $created_at 
+ * @property \Carbon\Carbon $updated_at 
+ * @property string $reason 
  */
 class PaymentRecord extends Model
 {
@@ -23,5 +31,5 @@ class PaymentRecord extends Model
     /**
      * The attributes that should be cast to native types.
      */
-    protected array $casts = [];
+    protected array $casts = ['id' => 'integer', 'user_id' => 'integer', 'created_at' => 'datetime', 'updated_at' => 'datetime'];
 }

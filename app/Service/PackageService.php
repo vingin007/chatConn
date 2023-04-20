@@ -36,7 +36,6 @@ class PackageService
         $package->save();
 
         // 初始化价格缓存队列
-        $priceQueue = [];
         for ($i = 0; $i < 10; $i++) {
             $amount = $data['price'] - $i / 100;
             $this->redis->lPush("order:amounts:{$package->id}", $amount);

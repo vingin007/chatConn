@@ -3,17 +3,14 @@
 declare(strict_types=1);
 namespace App\Controller;
 
-use App\Event\OrderPaid;
 use App\Event\TextMessageSend;
 use App\Exception\BusinessException;
-use App\Middleware\Auth\AdminAuthMiddleware;
 use App\Middleware\Auth\RefreshTokenMiddleware;
 use App\Model\Chat;
 use App\Model\Message;
-use App\Service\AudioService;
+use App\Service\VideoService;
 use App\Service\ChatRecordService;
 use App\Service\FilterWordService;
-use App\Service\GcsService;
 use App\Service\OpenaiService;
 use App\Service\S3Service;
 use App\Traits\ApiResponseTrait;
@@ -51,7 +48,7 @@ class SseController
     #[Inject]
     protected AuthManager $auth;
     #[Inject]
-    protected AudioService $audioService;
+    protected VideoService $audioService;
     #[Inject]
     protected EventDispatcherInterface $eventDispatcher;
     #[Inject]

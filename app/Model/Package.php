@@ -8,19 +8,15 @@ use Hyperf\DbConnection\Model\Model;
 use OpenApi\Annotations as OA;
 
 /**
- * @OA\Schema(
- *     title="Package",
- *     description="Package model",
- *     @OA\Property(property="id", type="integer"),
- *     @OA\Property(property="name", type="string"),
- *     @OA\Property(property="quota", type="integer"),
- *     @OA\Property(property="duration", type="integer"),
- *     @OA\Property(property="status", type="integer"),
- *     @OA\Property(property="level", type="integer"),
- *     @OA\Property(property="price", type="string"),
- *     @OA\Property(property="created_at", type="string", format="date-time"),
- *     @OA\Property(property="updated_at", type="string", format="date-time"),
- * )
+ * @property int $id 
+ * @property string $name 
+ * @property int $quota 
+ * @property int $duration 
+ * @property int $status 
+ * @property string $price 
+ * @property \Carbon\Carbon $created_at 
+ * @property \Carbon\Carbon $updated_at 
+ * @property int $level 
  */
 class Package extends Model
 {
@@ -42,5 +38,5 @@ class Package extends Model
     /**
      * The attributes that should be cast to native types.
      */
-    protected array $casts = ['id' => 'integer', 'quota' => 'integer', 'duration' => 'integer', 'status' => 'integer', 'created_at' => 'datetime', 'updated_at' => 'datetime'];
+    protected array $casts = ['id' => 'integer', 'quota' => 'integer', 'duration' => 'integer', 'status' => 'integer', 'created_at' => 'datetime', 'updated_at' => 'datetime', 'level' => 'integer'];
 }

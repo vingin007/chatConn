@@ -4,7 +4,7 @@ namespace App\Controller;
 use App\Exception\BusinessException;
 use App\Middleware\Auth\RefreshTokenMiddleware;
 use App\Model\Package;
-use App\Service\OrderService;
+use App\Service\TransOrderService;
 use App\Traits\ApiResponseTrait;
 use Hyperf\Database\Model\ModelNotFoundException;
 use Hyperf\Di\Annotation\Inject;
@@ -19,7 +19,7 @@ class OrderController extends AbstractController
 {
     use ApiResponseTrait;
     #[Inject]
-    protected OrderService $orderService;
+    protected TransOrderService $orderService;
 
     protected $user;
     #[Inject]

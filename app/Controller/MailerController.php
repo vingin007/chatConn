@@ -16,7 +16,7 @@ class MailerController extends AbstractController
     #[Inject]
     private MailerInterface $mailer;
     #[RequestMapping(path: 'email', methods: 'post')]
-    public function sendEmail(MailerInterface $mailer)
+    public function sendEmail()
     {
         $mailService = new MailService($this->mailer);
         $mailService->sendVerificationEmail('2681977867@qq.com', '123456');

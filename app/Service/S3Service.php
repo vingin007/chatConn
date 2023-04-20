@@ -10,7 +10,7 @@ class S3Service
     public function __construct()
     {
         $this->client = new S3Client([
-            'region' => getenv('AWS_REGION'),
+            'region' => 'ap-northeast-1',
             'version' => 'latest',
             'credentials' => [
                 'key' => getenv('AWS_ACCESS_KEY_ID'),
@@ -26,7 +26,7 @@ class S3Service
      * @param string $bucketName 储存桶名称
      * @return bool 是否上传成功
      */
-    public function uploadFile(string $objectKey,$stream,string $bucketName = 'smarktalk')
+    public function uploadFile(string $objectKey,$stream,string $bucketName = 'audiotr')
     {
         try {
             $this->client->putObject([
@@ -47,7 +47,7 @@ class S3Service
      * @param string $objectKey 文件在储存桶中的唯一标识
      * @return bool 是否删除成功
      */
-    public function deleteFile(string $objectKey,string $bucketName = 'smarktalk')
+    public function deleteFile(string $objectKey,string $bucketName = 'audiotr')
     {
         try {
             $this->client->deleteObject([
@@ -68,7 +68,7 @@ class S3Service
      * @param int $expiresIn 链接的有效期（秒）
      * @return string|null 文件的临时链接，如果获取失败则返回 null
      */
-    public function getFileUrl(string $objectKey, int $expiresIn = 3600,string $bucketName = 'smarktalk')
+    public function getFileUrl(string $objectKey, int $expiresIn = 3600,string $bucketName = 'audiotr')
     {
         try {
             $cmd = $this->client->getCommand('GetObject', [
@@ -77,6 +77,35 @@ class S3Service
             ]);
             $request = $this->client->createPresignedRequest($cmd, "+{$expiresIn} seconds");
             return (string)$request->getUri();
+        } catch (S3Exception $e) {
+            // 处理异常
+            return null;
+        }
+    }
+
+    public function downloadFile(string $objectKey,string $bucketName = 'audiotr'): ?bool
+    {
+        try {
+            $this->client->getObject([
+                'Bucket' => $bucketName,
+                'Key' => $objectKey,
+                'SaveAs' => BASE_PATH.'/runtime/storage/'.$objectKey,
+            ]);
+            return $objectKey;
+        } catch (S3Exception $e) {
+            // 处理异常
+            return null;
+        }
+    }
+
+    public function getContet(string $objectKey,string $bucketName = 'audiotr')
+    {
+        try {
+            $result = $this->client->getObject([
+                'Bucket' => $bucketName,
+                'Key' => $objectKey,
+            ]);
+            return $result['Body'];
         } catch (S3Exception $e) {
             // 处理异常
             return null;

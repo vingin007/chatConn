@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Event\OrderPaid;
+use App\Event\TransOrderPaid;
 use App\Exception\BusinessException;
 use App\Middleware\Auth\AdminAuthMiddleware;
 use App\Model\Order;
@@ -71,7 +71,7 @@ class AdminPaymentController
             $paymentRecord->payment_order_no = $order->order_no;
             $paymentRecord->user_id = $order->user_id;
             $paymentRecord->save();
-            $this->eventDispatcher->dispatch(new OrderPaid($order));
+            $this->eventDispatcher->dispatch(new TransOrderPaid($order));
             // 提交事务
             Db::commit();
         } catch (\Exception $e) {

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use App\Event\OrderPaid;
+use App\Event\TransOrderPaid;
 use App\Exception\BusinessException;
 use App\Middleware\Auth\AdminAuthMiddleware;
 use App\Model\Order;
@@ -67,7 +67,7 @@ class AdminOrderController
         if (!$order->save()) {
             throw new BusinessException(400, '标记订单为已付款失败');
         }
-        $this->eventDispatcher->dispatch(new OrderPaid($order));
+        $this->eventDispatcher->dispatch(new TransOrderPaid($order));
         return $this->success($order);
     }
 }
