@@ -103,9 +103,9 @@ class TransOrderController
     }
     /**
      * @OA\Post(
-     *     path="/trans/create",
+     *     path="/trans_order/create",
      *     summary="Create a new transcription order",
-     *     tags={"Transcription"},
+     *     tags={"Trans Orders"},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
