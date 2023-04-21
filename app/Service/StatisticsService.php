@@ -15,7 +15,7 @@ class StatisticsService
         $new_paid_users = [];
 
         for ($i = 0; $i < 7; $i++) {
-            $date = Carbon::now()->subDays($i);
+            $date = Carbon::now('Asia/Shanghai')->subDays($i);
             $day_new_users = Db::table('users')
                 ->whereDate('created_at', $date)
                 ->count();
@@ -60,7 +60,7 @@ class StatisticsService
     public function order7daysCount()
     {
         for ($i = 0; $i < 7; $i++) {
-            $date = Carbon::now()->subDays($i);
+            $date = Carbon::now('Asia/Shanghai')->subDays($i);
             $day_orders = Db::table('orders')
                 ->whereDate('created_at', $date)
                 ->count();
@@ -142,7 +142,7 @@ class StatisticsService
     public function gpt7daysCount()
     {
         for ($i = 0; $i < 7; $i++) {
-            $date = Carbon::now()->subDays($i);
+            $date = Carbon::now('Asia/Shanghai')->subDays($i);
 
             $day_gpt_consumption = Db::table('message')
                 ->where(function ($query) {

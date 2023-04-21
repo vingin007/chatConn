@@ -13,8 +13,10 @@
     "license": "Apache-2.0",
     "require": {
         "php": ">=8.1",
+        "ext-bcmath": "*",
         "ext-curl": "*",
         "aws/aws-sdk-php": "^3.263",
+        "doctrine/dbal": "^3.6",
         "dtm/dtm-client": "^0.3.3",
         "fig/http-message-util": "^1.1",
         "google/cloud-speech": "^1.10",
@@ -60,8 +62,7 @@
         "symfony/mailer": "^6.2",
         "symfony/security-core": "^5.2",
         "w7corp/easywechat": "^6.10",
-        "zircote/swagger-php": "^4.7",
-      "ext-bcmath": "*"
+        "zircote/swagger-php": "^4.7"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.0",

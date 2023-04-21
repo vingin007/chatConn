@@ -8,6 +8,22 @@ use Hyperf\DbConnection\Model\Model;
 use OpenApi\Annotations as OA;
 
 /**
+ * @OA\Schema(
+ *     schema="Message",
+ *     type="object",
+ *     description="A Message object",
+ *     @OA\Property(property="id", type="integer", description="The ID of the message"),
+ *     @OA\Property(property="user_id", type="integer", description="The ID of the user"),
+ *     @OA\Property(property="chat_id", type="integer", description="The ID of the chat"),
+ *     @OA\Property(property="is_user", type="boolean", description="Whether the message is from a user"),
+ *     @OA\Property(property="type", type="string", description="The type of the message", enum={"text", "image", "audio"}),
+ *     @OA\Property(property="store_name", type="string", description="The name of the file stored on the server"),
+ *     @OA\Property(property="url", type="string", description="The url of the file"),
+ *     @OA\Property(property="content", type="string", description="The content of the message"),
+ *     @OA\Property(property="created_at", type="string", format="date-time", description="The time the message was created"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time", description="The time the message was last updated")
+ * )
+/**
  * @property int $id 
  * @property int $chat_id 
  * @property int $user_id 

@@ -62,7 +62,7 @@ class AdminOrderController
         }
 
         $order->status = Order::STATUS_PAID;
-        $order->paid_time = Carbon::now();
+        $order->paid_time = Carbon::now('Asia/Shanghai');
         $order->payment_method = $request->input('payment_method');
         if (!$order->save()) {
             throw new BusinessException(400, '标记订单为已付款失败');

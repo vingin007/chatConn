@@ -11,6 +11,30 @@ use HyperfExtension\Jwt\Contracts\JwtSubjectInterface;
 use OpenApi\Annotations as OA;
 
 /**
+ * @OA\Schema(
+ *     title="User",
+ *     description="User model",
+ *     @OA\Property(property="id", type="integer"),
+ *     @OA\Property(property="username", type="string"),
+ *     @OA\Property(property="password", type="string"),
+ *     @OA\Property(property="email", type="string"),
+ *     @OA\Property(property="mobile", type="string"),
+ *     @OA\Property(property="wechat_openid", type="string"),
+ *     @OA\Property(property="telegram_id", type="string"),
+ *     @OA\Property(property="register_time", type="string", format="date-time"),
+ *     @OA\Property(property="quota", type="integer"),
+ *     @OA\Property(property="level", type="integer"),
+ *     @OA\Property(property="email_valid", type="integer"),
+ *     @OA\Property(property="expire_time", type="string", format="date-time"),
+ *     @OA\Property(property="created_at", type="string", format="date-time"),
+ *     @OA\Property(property="updated_at", type="string", format="date-time"),
+ *     @OA\Property(property="api_key", type="string"),
+ *     @OA\Property(property="api_key_unlocked", type="integer"),
+ *     @OA\Property(property="api_key_status", type="integer"),
+ *     @OA\Property(property="referral_count", type="integer"),
+ *     @OA\Property(property="referrer_id", type="integer"),
+ * )
+/**
  * @property int $id 
  * @property string $username 
  * @property string $password 

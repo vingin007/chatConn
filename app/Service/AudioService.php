@@ -32,13 +32,7 @@ use Psr\EventDispatcher\EventDispatcherInterface;
 class AudioService
 {
     #[Inject]
-    protected GcsService $gcsService;
-    #[Inject]
-    protected SttService $sttService;
-    #[Inject]
     protected ChatRecordService $chatRecordService;
-    #[Inject]
-    protected TtsService $ttsService;
     #[Inject]
     protected OpenaiService $openaiService;
     #[Inject]
@@ -47,8 +41,6 @@ class AudioService
     protected S3Service $s3Service;
     #[Inject]
     protected PollyService $pollyService;
-    #[Inject]
-    protected AwsTranscribeService $awsTranscribeService;
 
     public function upload(User $user,Chat $chat,$file)
     {

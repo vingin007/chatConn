@@ -49,13 +49,13 @@ class AdminUserController
         $order->user_id = $userId;
         $order->payment_method = $paymentMethod;
         $order->paid = true;
-        $order->paid_time = Carbon::now();
+        $order->paid_time = Carbon::now('Asia/Shanghai');
         $order->package_id = $package->id;
         $order->package_name = $package->name;
         $order->package_quota = $package->quota;
         $order->package_duration = $package->duration;
         $order->amount = $amount;
-        $order->expired_at = Carbon::now()->addDays($package->duration);
+        $order->expired_at = Carbon::now('Asia/Shanghai')->addDays($package->duration);
         $order->status = Order::STATUS_PAID;
         $order->save();
 
@@ -63,7 +63,7 @@ class AdminUserController
         $user->quota += $package->quota;
         $user->level = $package->level;
         $user->paid = true;
-        $user->paid_time = Carbon::now();
+        $user->paid_time = Carbon::now('Asia/Shanghai');
         $user->expire_time = max($user->expire_time, $order->expired_at);
         $user->save();
 

@@ -14,9 +14,6 @@ class UserService
 {
     #[Inject]
     protected SmsService $smsService;
-
-    #[Inject]
-    protected StatisticsService $packageService;
     /**
      * 创建用户.
      */
@@ -59,10 +56,10 @@ class UserService
             throw $e;
         }
         $user->quota = 5;
-        $user->expire_time = Carbon::now()->addMonth();
+        $user->expire_time = Carbon::now('Asia/Shanghai')->addMonth();
         $user->mobile = $mobile;
         $user->password = $mobile;
-        $user->bind_time = Carbon::now();
+        $user->bind_time = Carbon::now('Asia/Shanghai');
         $user->save();
         return $user;
     }

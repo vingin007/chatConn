@@ -8,6 +8,13 @@ use Hyperf\DbConnection\Model\Model;
 use OpenApi\Annotations as OA;
 
 /**
+ * @OA\Schema(
+ *     schema="Chat",
+ *     @OA\Property(property="id", type="integer", description="聊天ID"),
+ *     @OA\Property(property="name", type="string", description="聊天名称"),
+ *     @OA\Property(property="type", type="integer", description="聊天类型")
+ * )
+/**
  * @property int $id 
  * @property int $type 
  * @property int $user_id 

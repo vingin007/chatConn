@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Middleware\Auth\AdminAuthMiddleware;
 use App\Middleware\Auth\RefreshTokenMiddleware;
+use App\Service\PackageService;
 use App\Service\StatisticsService;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
@@ -17,7 +18,7 @@ use OpenApi\Annotations as OA;
 class PackageController
 {
     #[Inject]
-    private StatisticsService $packageService;
+    private PackageService $packageService;
 
     public function __construct(StatisticsService $packageService)
     {

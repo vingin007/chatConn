@@ -7,6 +7,7 @@ use App\Model\Order;
 use App\Model\Package;
 use App\Model\PaymentRecord;
 use App\Model\User;
+use App\Service\OrderService;
 use App\Service\TransOrderService;
 use Hyperf\AsyncQueue\Driver\DriverFactory;
 use Hyperf\Redis\Redis;
@@ -16,7 +17,7 @@ use PHPUnit\Framework\TestCase;
 
 class OrderServiceTest extends TestCase
 {
-    protected TransOrderService $orderService;
+    protected OrderService $orderService;
     protected $redis;
     protected $user;
     protected $package;

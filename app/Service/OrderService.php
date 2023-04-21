@@ -41,7 +41,8 @@ class OrderService
             ->where('user_id', $user->id)
             ->where('package_id', $package->id)
             ->where('status', Order::STATUS_UNPAID)
-            ->whereBetween('created_at', [Carbon::now()->subMinutes(100), Carbon::now()])
+
+            ->whereBetween('created_at', [Carbon::now('Asia/Shanghai')->subMinutes(5), Carbon::now('Asia/Shanghai')])
             ->first();
         if ($currentorder){
             throw new BusinessException(400, '您有未支付的订单，请先支付');
@@ -50,7 +51,7 @@ class OrderService
         $unpaidOrders = Order::query()
             ->where('status', Order::STATUS_UNPAID)
             ->where('package_id', $package->id)
-            ->whereBetween('created_at', [Carbon::now()->subMinutes(100), Carbon::now()])
+            ->whereBetween('created_at', [Carbon::now('Asia/Shanghai')->subMinutes(5), Carbon::now('Asia/Shanghai')])
             ->count();
 
         if ($unpaidOrders >= 10) {
@@ -73,7 +74,7 @@ class OrderService
         $order->package_quota = $package->quota;
         $order->package_duration = $package->duration;
         $order->amount = $amount;
-        $order->expired_at = Carbon::now()->addDays($package->duration);
+        $order->expired_at = Carbon::now('Asia/Shanghai')->addDays($package->duration);
         $order->status = Order::STATUS_UNPAID;
 
         if (!$order->save()) {
@@ -92,9 +93,9 @@ class OrderService
         if($_sign != $sign){
             return false;
         }
-        $carbonInstance = Carbon::createFromTimestamp($timestamp);
+        $carbonInstance = Carbon::createFromTimestamp($timestamp,'Asia/Shanghai');
 
-        $currentCarbonInstance = $carbonInstance->now();
+        $currentCarbonInstance = $carbonInstance->now('Asia/Shanghai');
         $order = Order::query()->where('amount', $amount)
             ->where('status', Order::STATUS_UNPAID)
             ->first();
@@ -114,7 +115,7 @@ class OrderService
         $payment->user_id = $order->user_id;
         $payment->save();
         $order->status = Order::STATUS_PAID;
-        $order->paid_time = Carbon::now();
+        $order->paid_time = Carbon::now('Asia/Shanghai');
 
         if (!$order->save()) {
             throw new BusinessException(400, 'Failed to pay order');

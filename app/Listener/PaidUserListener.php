@@ -30,7 +30,7 @@ class PaidUserListener implements ListenerInterface
         $order = $event->order;
         $user = $order->user()->first();
         $user->is_paid = true;
-        $user->paid_time = Carbon::now();
+        $user->paid_time = Carbon::now('Asia/Shanghai');
         $user->save();
     }
 }

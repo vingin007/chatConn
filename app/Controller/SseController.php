@@ -8,6 +8,7 @@ use App\Exception\BusinessException;
 use App\Middleware\Auth\RefreshTokenMiddleware;
 use App\Model\Chat;
 use App\Model\Message;
+use App\Service\AudioService;
 use App\Service\VideoService;
 use App\Service\ChatRecordService;
 use App\Service\FilterWordService;
@@ -48,7 +49,7 @@ class SseController
     #[Inject]
     protected AuthManager $auth;
     #[Inject]
-    protected VideoService $audioService;
+    protected AudioService $audioService;
     #[Inject]
     protected EventDispatcherInterface $eventDispatcher;
     #[Inject]
@@ -140,7 +141,7 @@ class SseController
             $answer = $this->chatRecordService->addChatLog($user, $chat, $answer_content, 'text', '', '', false);
             $this->eventDispatcher->dispatch(new TextMessageSend($user));
             Db::commit();
-        }catch (GuzzleException|ModelNotFoundException $exception){
+        }catch (GuzzleException|ModelNotFoundException|BusinessException $exception){
             Db::rollBack();
            return $this->fail($exception->getMessage());
         }catch (RateLimitException $exception) {
@@ -213,6 +214,9 @@ class SseController
         $chatId = $request->input('chat_id', '');
         $messageId = $request->input('message_id', '');
         $user = $this->auth->guard('mini')->user();
+        if ($user->quota < 1){
+            return $this->fail('您的额度不足', 403);
+        }
         try {
             $chat = Chat::query()->findOrFail($chatId);
             $message = Message::query()->findOrFail($messageId);
@@ -294,6 +298,9 @@ class SseController
         $file = $request->file('audio');
         $chatId = $request->input('chat_id', '');
         $user = $this->auth->guard('mini')->user();
+        if ($user->quota < 1){
+            return $this->fail('您的额度不足', 403);
+        }
         //上传到服务器
         try {
             $chat = Chat::query()->findOrFail($chatId);

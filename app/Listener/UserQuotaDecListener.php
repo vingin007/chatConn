@@ -7,6 +7,7 @@ namespace App\Listener;
 use App\Event\AudioMessageSend;
 use App\Event\TransOrderPaid;
 use App\Event\TextMessageSend;
+use App\Exception\BusinessException;
 use Hyperf\Event\Annotation\Listener;
 use Psr\Container\ContainerInterface;
 use Hyperf\Event\Contract\ListenerInterface;
@@ -29,7 +30,10 @@ class UserQuotaDecListener implements ListenerInterface
     public function process(object $event): void
     {
         $user = $event->user;
-        $user->quota = $user->quota-1;
+        $user->quota -= 1;
+        if($user->quota < 0){
+            throw new BusinessException('余额不足');
+        }
         $user->save();
     }
 }
