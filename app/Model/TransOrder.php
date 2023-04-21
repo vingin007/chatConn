@@ -8,7 +8,7 @@ use Hyperf\DbConnection\Model\Model;
 use OpenApi\Annotations as OA;
 /**
  * @OA\Schema(
- *   title="trans_order",
+ *   title="TransOrder",
  *   type="object",
  *   description="TransOrder schema",
  *   @OA\Property(property="order_no", type="string", description="Order number"),
