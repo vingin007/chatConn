@@ -44,7 +44,6 @@ class AudioService
     protected S3Service $s3Service;
     #[Inject]
     protected PollyService $pollyService;
-    #[Inject]
     protected LoggerInterface $logger;
     public function __construct(LoggerFactory $loggerFactory)
     {
