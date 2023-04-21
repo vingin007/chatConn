@@ -29,6 +29,48 @@ class AudioController
     protected AuthManager $auth;
     #[Inject]
     protected AudioService $audioService;
+    /**
+     * @OA\Post(
+     *     path="/upload",
+     *     summary="Upload audio file",
+     *     description="Uploads an audio file and returns the result.",
+     *     tags={"Audio"},
+     *     @OA\RequestBody(
+     *         description="Audio file to upload",
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 @OA\Property(
+     *                     property="file",
+     *                     description="Audio file",
+     *                     type="file",
+     *                 ),
+     *             ),
+     *         ),
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(ref="#/components/schemas/Video"),
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad request",
+     *         @OA\JsonContent(ref="#/components/schemas/BadRequestResponse"),
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(ref="#/components/schemas/UnauthorizedResponse"),
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Internal server error",
+     *         @OA\JsonContent(ref="#/components/schemas/InternalServerErrorResponse"),
+     *     ),
+     * )
+     */
     #[RequestMapping(path: 'upload', methods: 'post')]
     public function upload(RequestInterface $request, ResponseInterface $response)
     {
@@ -42,6 +84,64 @@ class AudioController
             return $this->fail($e->getMessage(),$e->getCode());
         }
     }
+    /**
+     * @OA\Post(
+     *     path="/trans",
+     *     summary="Transcribe audio file",
+     *     description="Transcribes an audio file and returns the result.",
+     *     tags={"Audio"},
+     *     @OA\RequestBody(
+     *         description="Request parameters",
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="application/json",
+     *             @OA\Schema(
+     *                 @OA\Property(
+     *                     property="file_id",
+     *                     description="ID of the audio file to transcribe",
+     *                     type="string",
+     *                 ),
+     *                 @OA\Property(
+     *                     property="is_trans",
+     *                     description="Whether to transcribe the audio file or not",
+     *                     type="boolean",
+     *                     default=true,
+     *                 ),
+     *                 @OA\Property(
+     *                     property="lang",
+     *                     description="Language of the audio file",
+     *                     type="string",
+     *                     default="chinese",
+     *                     enum={"chinese", "english", "japanese", "korean", "french", "german", "spanish", "portuguese", "italian", "russian", "arabic", "hindi"},
+     *                 ),
+     *             ),
+     *         ),
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Success",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="ass", type="string", description="Subtitle file name"),
+     *             @OA\Property(property="video", type="string", description="Transcribed video file name"),
+     *         ),
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="Bad request",
+     *         @OA\JsonContent(ref="#/components/schemas/BadRequestResponse"),
+     *     ),
+     *     @OA\Response(
+     *         response=401,
+     *         description="Unauthorized",
+     *         @OA\JsonContent(ref="#/components/schemas/UnauthorizedResponse"),
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="Internal server error",
+     *         @OA\JsonContent(ref="#/components/schemas/InternalServerErrorResponse"),
+     *     ),
+     * )
+     */
     #[RequestMapping(path: 'trans', methods: 'post')]
     public function trans(RequestInterface $request, ResponseInterface $response)
     {

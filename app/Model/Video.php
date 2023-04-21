@@ -8,63 +8,20 @@ use Hyperf\DbConnection\Model\Model;
 use OpenApi\Annotations as OA;
 /**
  * @OA\Schema(
- *   schema="Video",
+ *   title="Video",
  *   type="object",
  *   description="Video schema",
- *   @OA\Property(
- *     property="id",
- *     type="integer",
- *     description="Video ID"
- *   ),
- *   @OA\Property(
- *     property="user_id",
- *     type="integer",
- *     description="User ID"
- *   ),
- *   @OA\Property(
- *     property="store_name",
- *     type="string",
- *     description="Store name"
- *   ),
- *   @OA\Property(
- *     property="size",
- *     type="integer",
- *     description="Video size"
- *   ),
- *   @OA\Property(
- *     property="duration",
- *     type="string",
- *     description="Video duration"
- *   ),
- *   @OA\Property(
- *     property="format",
- *     type="string",
- *     description="Video format"
- *   ),
- *   @OA\Property(
- *     property="hash",
- *     type="string",
- *     description="Video hash"
- *   ),
- *   @OA\Property(
- *     property="created_at",
- *     type="string",
- *     format="date-time",
- *     description="Creation timestamp"
- *   ),
- *   @OA\Property(
- *     property="updated_at",
- *     type="string",
- *     format="date-time",
- *     description="Update timestamp"
- *   ),
- *   @OA\Property(
- *     property="status",
- *     type="integer",
- *     description="Video status"
- *   )
+ *   @OA\Property(property="id", type="integer", description="Video ID"),
+ *   @OA\Property(property="user_id", type="integer", description="User ID"),
+ *   @OA\Property(property="store_name", type="string", description="Store name"),
+ *   @OA\Property(property="size", type="integer", description="Video size"),
+ *   @OA\Property(property="duration", type="string", description="Video duration"),
+ *   @OA\Property(property="format", type="string", description="Video format"),
+ *   @OA\Property(property="hash", type="string", description="Video hash"),
+ *   @OA\Property(property="created_at", type="string", format="date-time", description="Creation timestamp"),
+ *   @OA\Property(property="updated_at", type="string", format="date-time", description="Update timestamp"),
+ *   @OA\Property(property="status", type="integer", description="Video status"),
  * )
- */
 
 /**
  * @property int $id
