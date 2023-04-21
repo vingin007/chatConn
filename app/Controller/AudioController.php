@@ -169,8 +169,7 @@ class AudioController
                 throw new BusinessException(401,'订单尚未支付，无法进行转录操作');
             }
             $result = $this->audioService->uploadAndText($file->store_name,$user,$lang,boolval($is_trans));
-            $file->delete();
-            return $this->success($result);
+            return $this->success(['message' => '转录任务开始，请稍后']);
         } catch (BusinessException|S3Exception $e) {
             return $this->fail($e->getMessage(),$e->getCode());
         }

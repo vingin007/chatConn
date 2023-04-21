@@ -174,9 +174,7 @@ class AudioService
         }
         return true;
     }
-    /**
-     * @throws Exception
-     */
+    #[AsyncQueueMessage]
     public function uploadAndText($store_name,$user_id,$lang = 'chinese',$is_trans = true)
     {
         $filesystem = ApplicationContext::getContainer()->get(FilesystemFactory::class)->get('local');
@@ -313,7 +311,8 @@ class AudioService
         file_put_contents($com_path, $assMergedContent);
         $video->filters()->custom("ass={$com_path}");
         // 选择输出格式
-        $format = new X264();
+        $format = new X264('libmp3lame', 'libx264');
+        $format->setKiloBitrate(3000);
         // 保存输出文件
         $en = BASE_PATH.'/storage/trans/'.$store_name;
         $video->save($format, $en);
@@ -339,6 +338,8 @@ class AudioService
             $transOrder->status = 2;
             $transOrder->save();
         }
+        $file = Video::query()->where('store_name', $store_name)->first();
+        $file->delete();
         return [
             'ass' => $store_name.'.ass',
             'video' => $store_name,
