@@ -31,7 +31,7 @@ class AudioController
     protected AudioService $audioService;
     /**
      * @OA\Post(
-     *     path="/upload",
+     *     path="/audio/upload",
      *     summary="Upload audio file",
      *     description="Uploads an audio file and returns the result.",
      *     tags={"Audio"},
@@ -86,9 +86,9 @@ class AudioController
     }
     /**
      * @OA\Post(
-     *     path="/trans",
+     *     path="/audio/trans",
      *     summary="Transcribe audio file",
-     *     description="Transcribes an audio file and returns the result.",
+     *     description="将上传后并且生成订单的视频转码",
      *     tags={"Audio"},
      *     @OA\RequestBody(
      *         description="Request parameters",
@@ -103,13 +103,13 @@ class AudioController
      *                 ),
      *                 @OA\Property(
      *                     property="is_trans",
-     *                     description="Whether to transcribe the audio file or not",
+     *                     description="是否保留原字幕",
      *                     type="boolean",
      *                     default=true,
      *                 ),
      *                 @OA\Property(
      *                     property="lang",
-     *                     description="Language of the audio file",
+     *                     description="指定目标语言",
      *                     type="string",
      *                     default="chinese",
      *                     enum={"chinese", "english", "japanese", "korean", "french", "german", "spanish", "portuguese", "italian", "russian", "arabic", "hindi"},
