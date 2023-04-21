@@ -22,11 +22,14 @@ use Hyperf\AsyncQueue\Annotation\AsyncQueueMessage;
 use Hyperf\DbConnection\Db;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\Filesystem\FilesystemFactory;
+use Hyperf\Logger\Logger;
+use Hyperf\Logger\LoggerFactory;
 use Hyperf\Utils\ApplicationContext;
 use League\Flysystem\FilesystemException;
 use Psr\Container\ContainerExceptionInterface;
 use Psr\Container\NotFoundExceptionInterface;
 use Psr\EventDispatcher\EventDispatcherInterface;
+use Psr\Log\LoggerInterface;
 
 
 class AudioService
@@ -41,7 +44,13 @@ class AudioService
     protected S3Service $s3Service;
     #[Inject]
     protected PollyService $pollyService;
-
+    #[Inject]
+    protected LoggerInterface $logger;
+    public function __construct(LoggerFactory $loggerFactory)
+    {
+        // 第一个参数对应日志的 name, 第二个参数对应 config/autoload/logger.php 内的 key
+        $this->logger = $loggerFactory->get('log', 'default');
+    }
     public function upload(User $user,Chat $chat,$file)
     {
         if (empty($file)) {
@@ -227,7 +236,9 @@ class AudioService
             ]
         ];
         $chinese_text = $this->openaiService->chat($request_message);
+        $this->logger->info('翻译结果:'.$chinese_text);
         $chinese_arr = explode('|||',$chinese_text);
+        $this->logger->info('翻译结果数组:'.json_encode($chinese_arr));
         //生成字幕文件
         $srt_content = "";
         $srt_chinese = "";
