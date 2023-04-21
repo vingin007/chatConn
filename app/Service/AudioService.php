@@ -215,23 +215,24 @@ class AudioService
         foreach ($voice_segments as $index => $item) {
             $start_time = $item['start'];
             $end_time = $item['end'];
-            $text = $this->wrapText($item['text'],40);
             $_text .= '|||'.$item['text'];
+            $text = $this->wrapText($item['text'],40);
             $subtitle_data[] = [
                 'start_time' => $start_time,
                 'end_time' => $end_time,
                 'text' => $text
             ];
         }
+        $this->logger->info('翻译结果:'.$_text);
         //向gpt请求翻译
         $request_message = [
             [
                 'role' => 'system',
-                'content' => 'You are a translator who translates any language. Keep the ||| in the user text.'
+                'content' => 'You are a translator who can translate any language.'
             ],
             [
                 'role' => 'user',
-                'content' => 'Translate the following text to '.$lang.':'.$_text
+                'content' => 'Keep the "|||" in the text.Translate the following text to '.$lang.':'.$_text
             ]
         ];
         $chinese_text = $this->openaiService->chat($request_message);
@@ -323,19 +324,21 @@ class AudioService
             throw $e;
         }
         // 删除临时音频文件
-        @unlink($outputAudioPath);
+        /*@unlink($outputAudioPath);
         @unlink($audioPath);
         @unlink($videoPath);
         @unlink($srt);
         @unlink($srt_ch);
         @unlink($assPath);
         @unlink($assPath2);
-        @unlink($en);
-        $transOrder = TransOrder::query()->where('original_video_store_name')->first();
-        $transOrder->transcribed_video_store_name = $store_name;
-        $transOrder->translated_subtitle_store_name = $store_name.'.ass';
-        $transOrder->status = 2;
-        $transOrder->save();
+        @unlink($en);*/
+        $transOrder = TransOrder::query()->where('original_video_store_name',$store_name)->first();
+        if($transOrder){
+            $transOrder->transcribed_video_store_name = $store_name;
+            $transOrder->translated_subtitle_store_name = $store_name.'.ass';
+            $transOrder->status = 2;
+            $transOrder->save();
+        }
         return [
             'ass' => $store_name.'.ass',
             'video' => $store_name,
