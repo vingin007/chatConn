@@ -324,14 +324,14 @@ class AudioService
             throw $e;
         }
         // 删除临时音频文件
-        /*@unlink($outputAudioPath);
+        @unlink($outputAudioPath);
         @unlink($audioPath);
         @unlink($videoPath);
         @unlink($srt);
         @unlink($srt_ch);
         @unlink($assPath);
         @unlink($assPath2);
-        @unlink($en);*/
+        @unlink($en);
         $transOrder = TransOrder::query()->where('original_video_store_name',$store_name)->first();
         if($transOrder){
             $transOrder->transcribed_video_store_name = $store_name;
