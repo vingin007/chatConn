@@ -4,18 +4,16 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
-use _PHPStan_9bcdc96f8\Nette\Utils\FileSystem;
 use App\Exception\BusinessException;
-use App\Middleware\Auth\RefreshTokenMiddleware;
 use App\Service\AudioService;
 use App\Traits\ApiResponseTrait;
 use Aws\S3\Exception\S3Exception;
+use GuzzleHttp\Psr7\Utils;
 use Hyperf\Context\ApplicationContext;
 use Hyperf\Di\Annotation\Inject;
+use GuzzleHttp\Psr7\Stream;
 use Hyperf\Filesystem\FilesystemFactory;
-use Hyperf\HttpMessage\Stream\SwooleStream;
 use Hyperf\HttpServer\Annotation\Controller;
-use Hyperf\HttpServer\Annotation\Middlewares;
 use Hyperf\HttpServer\Annotation\RequestMapping;
 use Hyperf\HttpServer\Contract\RequestInterface;
 use Hyperf\HttpServer\Contract\ResponseInterface;
@@ -191,11 +189,12 @@ class AudioController
             if ($filesystem->has($file->store_name) === false) {
                 throw new BusinessException(400, '文件不存在');
             }
-            $stream = $filesystem->read($file->store_name);
+            $stream = $filesystem->readStream($file->store_name);
+
             return $response
                 ->withHeader('Content-Type', 'application/octet-stream')
                 ->withHeader('Content-Disposition', 'attachment; filename="' . $file->store_name . '"')
-                ->withBody(new SwooleStream($stream));
+                ->withBody($body = Utils::streamFor($stream));
         } catch (BusinessException|S3Exception $e) {
             return $this->fail($e->getMessage(),$e->getCode());
         }
