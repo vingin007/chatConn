@@ -87,7 +87,7 @@ class ApiKeyController extends AbstractController
         try {
             $result = $this->apiKeyService->bind($apikey, $this->user);
         } catch (BusinessException $e) {
-            return $this->fail($e->getMessage(), $e->getCode());
+            return $this->fail($e->getMessage(), $e->getErrorCode());
         }
         return $this->success($result);
     }
@@ -110,7 +110,7 @@ class ApiKeyController extends AbstractController
         try {
             $result = $this->apiKeyService->remove($this->user);
         } catch (BusinessException $e) {
-            return $this->fail($e->getMessage(), $e->getCode());
+            return $this->fail($e->getMessage(), $e->geterrorCode());
         }
         return $this->success($result);
     }

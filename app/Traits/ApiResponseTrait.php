@@ -29,7 +29,7 @@ trait ApiResponseTrait
      */
     public function success($data): ResponseInterface
     {
-        return $this->respond($data);
+        return $this->setHttpCode()->respond($data);
     }
 
     /**

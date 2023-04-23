@@ -87,7 +87,7 @@ class MyaccountController
         try {
             $result = $this->userService->bindMobile($user,$mobile,$code);
         }catch (BusinessException $e){
-            return $this->fail($e->getMessage());
+            return $this->fail($e->getMessage(),$e->getErrorCode());
         }
         return $this->success($result);
     }
@@ -158,7 +158,7 @@ class MyaccountController
         try {
             $this->smsService->sendVerificationCode($mobile);
         }catch (NoGatewayAvailableException $e){
-            return $this->fail($e->getMessage());
+            return $this->fail($e->getMessage(),401);
         }
         return true;
     }

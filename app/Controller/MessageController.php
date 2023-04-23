@@ -77,7 +77,7 @@ class MessageController
             $message = Db::table('messages')->find($id);
             $result = $this->messageService->delete($message);
         }catch (ModelNotFoundException|BusinessException $exception){
-            return $this->fail($exception->getMessage());
+            return $this->fail($exception->getMessage(),404);
         }
         return $this->success($result);
     }

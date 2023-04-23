@@ -20,10 +20,6 @@ class PackageController
     #[Inject]
     private PackageService $packageService;
 
-    public function __construct(StatisticsService $packageService)
-    {
-        $this->packageService = $packageService;
-    }
     /**
      * @OA\Get(
      *     path="/package/lists",

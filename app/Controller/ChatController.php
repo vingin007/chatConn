@@ -123,7 +123,7 @@ class ChatController
         }
         $result = $chatService->deleteChat($this->user, $chat);
         if (!$result) {
-            return $this->fail('删除失败');
+            return $this->fail('删除失败',422);
         }
         return $this->success(true);
     }
@@ -191,7 +191,7 @@ class ChatController
         $newName = $request->post('new_name');
         $result = $chatService->renameChat($this->user, $chatId, $newName);
         if (!$result) {
-            return $this->fail('重命名失败');
+            return $this->fail('重命名失败',422);
         }
         return $this->success(true);
     }

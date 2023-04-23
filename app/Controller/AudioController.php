@@ -80,7 +80,7 @@ class AudioController
             $this->audioService->deleteFileAfterTime($result['id']);
             return $this->success($result);
         } catch (BusinessException $e) {
-            return $this->fail($e->getMessage(),$e->getCode());
+            return $this->fail($e->getMessage(),$e->getErrorCode());
         }
     }
     /**
@@ -172,7 +172,7 @@ class AudioController
             $result = $this->audioService->uploadAndText($file,$user,$font_size,$margin,$lang,boolval($is_trans));
             return $this->success(['message' => '转录任务开始，请稍后']);
         } catch (BusinessException|S3Exception $e) {
-            return $this->fail($e->getMessage(),$e->getCode());
+            return $this->fail($e->getMessage(),$e->getErrorCode());
         }
     }
     #[RequestMapping(path: 'get_audio', methods: 'get')]
@@ -196,7 +196,7 @@ class AudioController
                 ->withHeader('Content-Disposition', 'attachment; filename="' . $file->store_name . '"')
                 ->withBody($body = Utils::streamFor($stream));
         } catch (BusinessException|S3Exception $e) {
-            return $this->fail($e->getMessage(),$e->getCode());
+            return $this->fail($e->getMessage(),$e->getErrorCode());
         }
     }
     #[RequestMapping(path: 'recreate',methods: 'post')]

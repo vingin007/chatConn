@@ -21,7 +21,7 @@ class AdminAuthController
     {
         $credentials = $request->inputs(['name', 'password']);
         if (!$token = auth('admin')->attempt($credentials)) {
-            return $this->setHttpCode(StatusCodeInterface::STATUS_UNAUTHORIZED)->fail('Unauthorized');
+            return $this->setHttpCode(StatusCodeInterface::STATUS_UNAUTHORIZED)->fail('Unauthorized',401);
         }
         return $this->respondWithToken($token);
     }

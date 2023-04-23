@@ -32,7 +32,7 @@ class AuthController
     {
         $credentials = $request->inputs(['email', 'password']);
         if (!$token = auth('api')->attempt($credentials)) {
-            return $this->setHttpCode(StatusCodeInterface::STATUS_UNAUTHORIZED)->fail('Unauthorized');
+            return $this->setHttpCode(StatusCodeInterface::STATUS_UNAUTHORIZED)->fail('Unauthorized', 401);
         }
         return $this->respondWithToken($token);
     }

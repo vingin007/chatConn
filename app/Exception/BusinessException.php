@@ -37,8 +37,4 @@ class BusinessException extends Exception
         return $this->errorMessage;
     }
 
-    public function __toString()
-    {
-        return __CLASS__ . ": [{$this->errorCode}] {$this->errorMessage}\n";
-    }
 }
