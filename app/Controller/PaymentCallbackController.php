@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Service\OrderService;
+use App\Service\PaymentService;
 use App\Traits\ApiResponseTrait;
 use Hyperf\Di\Annotation\Inject;
 use Hyperf\HttpServer\Annotation\Controller;
@@ -21,6 +22,8 @@ class PaymentCallbackController
     #[Inject]
     protected OrderService $orderService;
     protected LoggerInterface $logger;
+    #[Inject]
+    protected PaymentService $paymentService;
 
     public function __construct(LoggerFactory $loggerFactory)
     {
@@ -42,5 +45,24 @@ class PaymentCallbackController
         }
         $this->orderService->payOrder($amount,$request->post('sign'),$request->post('timestamp'));
         return $this->success('success');
+    }
+    #[RequestMapping(path: 'notify', methods: 'get,post')]
+    public function notify(RequestInterface $request, ResponseInterface $response)
+    {
+        $params = $request->getQueryParams();
+
+        // 验证签名
+        // 假设你已经在 PaymentService 中实现了签名验证方法：`verifySign`
+         $verified = $this->paymentService->verifySign($params);
+
+        if ($verified) {
+            // 更新订单状态等业务逻辑
+            $this->orderService->_payOrder($params['out_trade_no'],$params['trade_no'],$params['type'],$params['money']);
+            // 返回success表示接收成功
+            return $this->response->raw('success');
+        } else {
+            // 签名验证失败，返回错误信息
+            return $this->response->raw('invalid sign');
+        }
     }
 }

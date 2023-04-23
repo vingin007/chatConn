@@ -21,7 +21,7 @@ class PaidUserListener implements ListenerInterface
     public function listen(): array
     {
         return [
-            TransOrderPaid::class
+            OrderPaid::class
         ];
     }
 
@@ -29,6 +29,9 @@ class PaidUserListener implements ListenerInterface
     {
         $order = $event->order;
         $user = $order->user()->first();
+        if ($user->is_paid) {
+            return;
+        }
         $user->is_paid = true;
         $user->paid_time = Carbon::now('Asia/Shanghai');
         $user->save();

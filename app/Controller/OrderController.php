@@ -3,8 +3,11 @@ namespace App\Controller;
 
 use App\Exception\BusinessException;
 use App\Middleware\Auth\RefreshTokenMiddleware;
+use App\Model\Order;
 use App\Model\Package;
+use App\Model\PaymentRecord;
 use App\Service\OrderService;
+use App\Service\PaymentService;
 use App\Service\TransOrderService;
 use App\Traits\ApiResponseTrait;
 use Hyperf\Database\Model\ModelNotFoundException;
@@ -25,6 +28,8 @@ class OrderController extends AbstractController
     protected $user;
     #[Inject]
     protected AuthManager $auth;
+    #[Inject]
+    protected PaymentService $paymentService;
 
     public function __construct()
     {
@@ -114,6 +119,30 @@ class OrderController extends AbstractController
             return $this->fail($e->getMessage(),400);
         }
 
+        return $this->success($order);
+    }
+
+    public function pay(RequestInterface $request)
+    {
+        $orderNo = $request->input('order_no');
+        $type = $request->input('type');
+        try {
+            $order = Order::query()->where('order_no',$orderNo)->firstOrFail();
+            if ($order->status !== Order::STATUS_UNPAID) {
+                throw new BusinessException('订单状态不正确');
+            }
+            $params = [
+                'type' => $type,
+                'out_trade_no' => $orderNo,
+                'notify_url' => 'http://api.talksmart.cc/payment_callback/notify',
+                'name' => $order->package_name,
+                'money' => $order->amount,
+                'clientip' => $request->getServerParams()['remote_addr'] ?? null
+            ];
+            $order = $this->paymentService->createPayment($params);
+        } catch (BusinessException|ModelNotFoundException $e) {
+            return $this->fail($e->getMessage(),400);
+        }
         return $this->success($order);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Event\OrderPaid;
 use App\Event\TransOrderPaid;
 use App\Exception\BusinessException;
 use App\Job\CancelOrderJob;
@@ -37,51 +38,23 @@ class OrderService
 
     public function generateOrder(Package $package, User $user)
     {
-        $currentorder = Order::query()
-            ->where('user_id', $user->id)
-            ->where('package_id', $package->id)
-            ->where('status', Order::STATUS_UNPAID)
-
-            ->whereBetween('created_at', [Carbon::now('Asia/Shanghai')->subMinutes(5), Carbon::now('Asia/Shanghai')])
-            ->first();
-        if ($currentorder){
-            throw new BusinessException(400, '您有未支付的订单，请先支付');
-        }
-        // 判断当前未付款订单数量是否已达到上限
-        $unpaidOrders = Order::query()
-            ->where('status', Order::STATUS_UNPAID)
-            ->where('package_id', $package->id)
-            ->whereBetween('created_at', [Carbon::now('Asia/Shanghai')->subMinutes(5), Carbon::now('Asia/Shanghai')])
-            ->count();
-
-        if ($unpaidOrders >= 10) {
-            throw new BusinessException(400, '支付通道拥挤，请稍后再试');
-        }
-
-        // 从 Redis 中获取订单金额
-        $amount = $this->redis->rPop("order:amounts:{$package->id}");
-        if (!$amount) {
-            throw new BusinessException(400, '支付通道拥挤，请稍后再试');
-        }
-
         $order = new Order();
         $order->order_no = Str::random(20);
-        $order->payment_method = 'wechat';
+        $order->payment_method = '';
         $order->paid = false;
         $order->user_id = $user->id;
         $order->package_id = $package->id;
         $order->package_name = $package->name;
         $order->package_quota = $package->quota;
         $order->package_duration = $package->duration;
-        $order->amount = $amount;
+        $order->amount = $package->price;
         $order->expired_at = Carbon::now('Asia/Shanghai')->addDays($package->duration);
         $order->status = Order::STATUS_UNPAID;
 
         if (!$order->save()) {
-            $this->redis->lPush("order:amounts:{$package->id}", $amount);
             throw new BusinessException(400, '下单失败，请稍后再试');
         }
-        $this->driver->push(new CancelOrderJob($order->order_no),60*100);
+        $this->driver->push(new CancelOrderJob($order->order_no),60*10);
         return $order;
     }
 
@@ -120,13 +93,37 @@ class OrderService
         if (!$order->save()) {
             throw new BusinessException(400, 'Failed to pay order');
         }
-
-        // 将订单金额返还到 Redis 中
-        $this->redis->lPush("order:amounts:{$order->package_id}", $order->amount);
-        $this->eventDispatcher->dispatch(new TransOrderPaid($order));
+        $this->eventDispatcher->dispatch(new OrderPaid($order));
         return $order;
     }
 
+    public function _payOrder($orderNo,$trade_no,$type,$money)
+    {
+        $order = Order::query()->where('order_no', $orderNo)
+            ->where('status', Order::STATUS_UNPAID)
+            ->first();
+        if (empty($order)){
+            throw new BusinessException(400, '订单不存在');
+        }
+        if($money != $order->amount){
+            throw new BusinessException(400, '支付金额不正确');
+        }
+        try {
+            $order->payment_method = $type;
+            $order->trade_no = $trade_no;
+            $order->status = Order::STATUS_PAID;
+            $order->paid = true;
+            $order->paid_time = Carbon::now('Asia/Shanghai');
+            $order->save();
+            $user = User::find($order->user_id);
+            $user->quota += $order->package_quota;
+            $user->save();
+            $this->eventDispatcher->dispatch(new OrderPaid($order));
+        } catch (\Exception $exception){
+            throw new BusinessException(400, '支付失败');
+        }
+        return $order;
+    }
     public function cancelOrder($orderId,User $user)
     {
         $order = Order::find($orderId);
@@ -145,10 +142,6 @@ class OrderService
         if (!$order->save()) {
             throw new BusinessException(400, 'Failed to cancel order');
         }
-
-        // 将订单金额返还到 Redis 中
-        $this->redis->lPush("order:amounts:{$order->package_id}", $order->amount);
-
         return $order;
     }
 }
