@@ -127,7 +127,7 @@ class AudioService
         $fileSizeInMB = $fileSize / (1024 * 1024);
 
         // 判断文件大小是否超过25MB
-        if ($fileSizeInMB > 25) {
+        if ($fileSizeInMB > 40) {
             throw new BusinessException(400,'文件大小超过25MB，请上传较小的文件。');
         }
         $ffmpeg = FFMpeg::create();
@@ -175,8 +175,9 @@ class AudioService
         return true;
     }
     #[AsyncQueueMessage]
-    public function uploadAndText($store_name,$user_id,$lang = 'chinese',$is_trans = true)
+    public function uploadAndText($file,$user_id,$font_size,$margin_v,$lang = 'chinese',$is_trans = true)
     {
+        $store_name = $file->store_name;
         $filesystem = ApplicationContext::getContainer()->get(FilesystemFactory::class)->get('local');
         $exists = $filesystem->has($store_name);
         if(!$exists){
@@ -203,10 +204,27 @@ class AudioService
         $audio->save($audioFormat, $audioPath);
         // 用openai的语音转文字接口转换音频为文字
         $message = $this->openaiService->convertAudioToText($audioPath,true);
-        $text = $message->text;
+        $file->message = $message;
+        $file->save();
+        $this->_recreate($message,$store_name,$videoPath,$lang,$font_size,$margin_v,40,15,$is_trans);
+        // 删除临时音频文件
+        @unlink($outputAudioPath);
+        @unlink($audioPath);
+        //保存到文件
+        return [
+            'ass' => $store_name.'.ass',
+            'video' => $store_name,
+        ];
+        //修改思路，第一次生成视频和字幕文件，并且在数据库保留convert的json数据，保留原视频，把生成的文件传给前端，服务器不再保存。用户可以调整参数，选择边距/字体大小/多少字符换行/原字幕/翻译后的字幕，然后把json传进来进行视频生成。
+    }
+    #[AsyncQueueMessage]
+    public function recreate($message,$store_name,$videoPath,$lang,$font_size,$margin_v,$oriwarp,$transwarp,$is_trans = true){
+        return $this->_recreate($message,$store_name,$videoPath,$lang,$font_size,$margin_v,$oriwarp,$transwarp,$is_trans);
+    }
+    private function _recreate($message,$store_name,$videoPath,$lang,$font_size,$margin_v,$oriwarp,$transwarp,$is_trans = true)
+    {
         //用aws的转录接口获取语音段和文本
         $voice_segments = $message['segments'];
-
         $subtitle_data = [];
         $_text = '';
         $count = count($voice_segments);
@@ -214,14 +232,13 @@ class AudioService
             $start_time = $item['start'];
             $end_time = $item['end'];
             $_text .= '|||'.$item['text'];
-            $text = $this->wrapText($item['text'],40);
+            $text = $this->wrapText($item['text'],$oriwarp);
             $subtitle_data[] = [
                 'start_time' => $start_time,
                 'end_time' => $end_time,
                 'text' => $text
             ];
         }
-        $this->logger->info('翻译结果:'.$_text);
         //向gpt请求翻译
         $request_message = [
             [
@@ -234,9 +251,8 @@ class AudioService
             ]
         ];
         $chinese_text = $this->openaiService->chat($request_message);
-        $this->logger->info('翻译结果:'.$chinese_text);
+        $this->logger->info('翻译结果2:'.$chinese_text);
         $chinese_arr = explode('|||',$chinese_text);
-        $this->logger->info('翻译结果数组:'.json_encode($chinese_arr));
         //生成字幕文件
         $srt_content = "";
         $srt_chinese = "";
@@ -249,17 +265,18 @@ class AudioService
             $srt_content .= $text . PHP_EOL . PHP_EOL;
             $srt_chinese .= ($index + 1) . PHP_EOL;
             $srt_chinese .= $start_time . " --> " . $end_time . PHP_EOL;
-            $ch = $this->wrapChinese($chinese_arr[$index+1],15);
+            $ch = $this->wrapChinese($chinese_arr[$index+1],$transwarp);
             $srt_chinese .= $ch . PHP_EOL . PHP_EOL;
         }
         $srt = BASE_PATH.'/storage/srt/'.$store_name.'.srt';
         $srt_ch = BASE_PATH.'/storage/srt/'.$store_name.'_ch.srt';
         file_put_contents($srt, $srt_content);
         file_put_contents($srt_ch, $srt_chinese);
+        $ffmpeg = FFMpeg::create();
         $video = $ffmpeg->open($videoPath);
         //fanyihou
         $assPath2 = BASE_PATH.'/storage/srt/'.$store_name.'_ch.ass';
-        $command = "ffmpeg -i {$srt_ch} {$assPath2}";
+        $command = "ffmpeg -y -i {$srt_ch} {$assPath2}";
         $output = null;
         $returnVar = null;
 
@@ -273,7 +290,7 @@ class AudioService
         if($is_trans === true){
             //yuan
             $assPath = BASE_PATH.'/storage/srt/'.$store_name.'.ass';
-            $command = "ffmpeg -i {$srt} {$assPath}";
+            $command = "ffmpeg -y -i {$srt} {$assPath}";
             $output = null;
             $returnVar = null;
 
@@ -291,17 +308,17 @@ class AudioService
 
         $assMergedContent = preg_replace_callback(
             '/^Style: (Default|Translated),(.*)$/m',
-            function ($matches) {
+            function ($matches) use ($font_size,$margin_v) {
                 list($styleType, $styleParams) = array($matches[1], $matches[2]);
 
                 list($fontName, $fontSize, $primaryColor, $secondaryColor, $outlineColor, $backColor, $bold, $italic, $underline, $strikeOut, $scaleX, $scaleY, $spacing, $angle, $borderStyle, $outline, $shadow, $alignment, $marginL, $marginR, $marginV, $encoding) = array_map('trim', explode(',', $styleParams));
 
                 $fontName = 'Arial';
-                $fontSize = 14;
+                $fontSize = $font_size;
                 $alignment = 2; // 屏幕底部中间位置
 
                 // 根据字幕类型调整垂直边距
-                $marginV = 30;
+                $marginV = $margin_v;
                 return 'Style: Default,' . implode(',', [$fontName, $fontSize, $primaryColor, $secondaryColor, $outlineColor, $backColor, $bold, $italic, $underline, $strikeOut, $scaleX, $scaleY, $spacing, $angle, $borderStyle, $outline, $shadow, $alignment, $marginL, $marginR, $marginV, $encoding]);
             },
             $assMergedContent
@@ -312,39 +329,18 @@ class AudioService
         $video->filters()->custom("ass={$com_path}");
         // 选择输出格式
         $format = new X264('libmp3lame', 'libx264');
-        $format->setKiloBitrate(3000);
         // 保存输出文件
         $en = BASE_PATH.'/storage/trans/'.$store_name;
         $video->save($format, $en);
-        try {
-            $this->s3Service->uploadFile($store_name.'.ass',fopen($com_path,'r'));
-            $this->s3Service->uploadFile($store_name,fopen($en,'r'));
-        }catch (S3Exception $e){
-            throw $e;
-        }
         // 删除临时音频文件
-        @unlink($outputAudioPath);
-        @unlink($audioPath);
-        @unlink($videoPath);
         @unlink($srt);
         @unlink($srt_ch);
         @unlink($assPath);
         @unlink($assPath2);
-        @unlink($en);
-        $transOrder = TransOrder::query()->where('original_video_store_name',$store_name)->first();
-        if($transOrder){
-            $transOrder->transcribed_video_store_name = $store_name;
-            $transOrder->translated_subtitle_store_name = $store_name.'.ass';
-            $transOrder->status = 2;
-            $transOrder->save();
-        }
-        $file = Video::query()->where('store_name', $store_name)->first();
-        $file->delete();
         return [
             'ass' => $store_name.'.ass',
             'video' => $store_name,
         ];
-
     }
     function wrapText($text, $maxLineLength = 40) {
         $words = explode(' ', $text);

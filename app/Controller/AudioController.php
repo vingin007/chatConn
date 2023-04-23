@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use _PHPStan_9bcdc96f8\Nette\Utils\FileSystem;
 use App\Exception\BusinessException;
 use App\Middleware\Auth\RefreshTokenMiddleware;
 use App\Service\AudioService;
 use App\Traits\ApiResponseTrait;
 use Aws\S3\Exception\S3Exception;
+use Hyperf\Context\ApplicationContext;
 use Hyperf\Di\Annotation\Inject;
+use Hyperf\Filesystem\FilesystemFactory;
+use Hyperf\HttpMessage\Stream\SwooleStream;
 use Hyperf\HttpServer\Annotation\Controller;
 use Hyperf\HttpServer\Annotation\Middlewares;
 use Hyperf\HttpServer\Annotation\RequestMapping;
@@ -19,9 +23,6 @@ use HyperfExtension\Auth\AuthManager;
 use App\Model\Video;
 
 #[Controller]
-#[Middlewares([
-    RefreshTokenMiddleware::class
-])]
 class AudioController
 {
     use ApiResponseTrait;
@@ -159,6 +160,8 @@ class AudioController
         $file_id = $request->input('file_id','');
         $is_trans = $request->input('is_trans',1);
         $lang = $request->input('lang','chinese');
+        $margin = $request->input('margin_v',30);
+        $font_size = $request->input('font_size',14);
         try {
             $user = $this->auth->guard('mini')->user();
             $file = Video::query()->where('id', $file_id)->first();
@@ -168,10 +171,55 @@ class AudioController
             if($file->status != 1){
                 throw new BusinessException(401,'订单尚未支付，无法进行转录操作');
             }
-            $result = $this->audioService->uploadAndText($file->store_name,$user,$lang,boolval($is_trans));
+            $result = $this->audioService->uploadAndText($file,$user,$font_size,$margin,$lang,boolval($is_trans));
             return $this->success(['message' => '转录任务开始，请稍后']);
         } catch (BusinessException|S3Exception $e) {
             return $this->fail($e->getMessage(),$e->getCode());
         }
+    }
+    #[RequestMapping(path: 'get_audio', methods: 'get')]
+    public function getAudio(RequestInterface $request, ResponseInterface $response)
+    {
+        $file_id = $request->input('id','');
+        try {
+            $user = $this->auth->guard('mini')->user();
+            $file = Video::query()->where('id', $file_id)->first();
+            if(empty($file)){
+                throw new BusinessException(400, '文件不存在');
+            }
+            $filesystem = ApplicationContext::getContainer()->get(FilesystemFactory::class)->get('local');
+            if ($filesystem->has($file->store_name) === false) {
+                throw new BusinessException(400, '文件不存在');
+            }
+            $stream = $filesystem->read($file->store_name);
+            return $response
+                ->withHeader('Content-Type', 'application/octet-stream')
+                ->withHeader('Content-Disposition', 'attachment; filename="' . $file->store_name . '"')
+                ->withBody(new SwooleStream($stream));
+        } catch (BusinessException|S3Exception $e) {
+            return $this->fail($e->getMessage(),$e->getCode());
+        }
+    }
+    #[RequestMapping(path: 'recreate',methods: 'post')]
+    public function recreate(RequestInterface $request, ResponseInterface $response)
+    {
+        $file_id = $request->input('id','');
+        $is_trans = $request->input('is_trans',1);
+        $margin = $request->input('margin_v',30);
+        $font_size = $request->input('font_size',14);
+        $oriwarp = $request->input('ori_warp',40);
+        $transwarp = $request->input('trans_warp',15);
+        $lang = $request->input('lang','chinese');
+        $file = Video::query()->where('id', $file_id)->first();
+        if(empty($file)){
+            throw new BusinessException(400, '文件不存在');
+        }
+        $filesystem = ApplicationContext::getContainer()->get(FilesystemFactory::class)->get('local');
+        if ($filesystem->has($file->store_name) === false) {
+            throw new BusinessException(400, '文件不存在');
+        }
+        $videoPath = BASE_PATH.'/runtime/storage/'.$file->store_name;
+        $this->audioService->recreate($file->message,$file->store_name,$videoPath,$lang,$font_size,$margin,$oriwarp,$transwarp,$is_trans);
+        return $this->success(['message' => '已开始重新烧制，请稍后']);
     }
 }

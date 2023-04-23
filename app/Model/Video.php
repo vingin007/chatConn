@@ -50,5 +50,5 @@ class Video extends Model
     /**
      * The attributes that should be cast to native types.
      */
-    protected array $casts = ['id' => 'integer', 'user_id' => 'integer', 'size' => 'integer', 'created_at' => 'datetime', 'updated_at' => 'datetime', 'status' => 'integer'];
+    protected array $casts = ['id' => 'integer', 'user_id' => 'integer', 'size' => 'integer', 'created_at' => 'datetime', 'updated_at' => 'datetime', 'status' => 'integer','message' => 'json'];
 }
