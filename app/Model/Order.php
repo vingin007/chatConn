@@ -59,6 +59,10 @@ class Order extends Model
      */
     protected ?string $table = 'orders';
 
+    protected string $primaryKey = 'order_no';
+
+    protected string $keyType = 'string';
+
     /**
      * The attributes that are mass assignable.
      */
