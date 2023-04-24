@@ -66,9 +66,9 @@ class AuthService
      * @param $guard
      * @return array 生成的认证凭证，如果登录失败则返回 null
      */
-    public function login(string $mobile, string $password, $guard): array
+    public function login(string $email, string $password, $guard): array
     {
-        $credentials = ['mobile' => $mobile,'password' => $password];
+        $credentials = ['email' => $email,'password' => $password];
         $token = $this->auth->guard($guard)->attempt($credentials);
         if(!$token) throw new BusinessException(BusinessException::UNAUTHORIZED,'用户名或密码错误');
 

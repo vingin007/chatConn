@@ -87,8 +87,8 @@ class MiniWechatController
     public function login(RequestInterface $request): ResponseInterface
     {
         try {
-            if ($request->has('mobile') && $request->has('password')) {
-                $result = $this->authService->login($request->post('mobile'), $request->post('password'), 'mini');
+            if ($request->has('email') && $request->has('password')) {
+                $result = $this->authService->login($request->post('email'), $request->post('password'), 'mini');
             } else {
                 throw new BusinessException(422,'用户名或密码不能为空');
             }
