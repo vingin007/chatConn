@@ -8,6 +8,7 @@ use App\Middleware\Auth\AdminAuthMiddleware;
 use App\Middleware\Auth\RefreshTokenMiddleware;
 use App\Middleware\SmsIpLimitMiddleware;
 use App\Middleware\SmsLimitMiddleware;
+use App\Model\User;
 use App\Service\AuthService;
 use App\Service\SmsService;
 use App\Service\UserService;
@@ -162,5 +163,37 @@ class MyaccountController
         }
         return true;
     }
-
+    /**
+     * @OA\Get(
+     *     path="/myaccount/get_quota",
+     *     summary="获取用户配额",
+     *     tags={"User"},
+     *     security={{"bearerAuth":{}}},
+     *     @OA\Response(
+     *         response="200",
+     *         description="成功获取用户配额",
+     *         @OA\JsonContent(
+     *             @OA\Property(
+     *                 property="quota",
+     *                 type="integer",
+     *                 description="用户配额"
+     *             ),
+     *             example={
+     *                 "quota": 10
+     *             }
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response="400",
+     *         description="请求错误"
+     *     ),
+     * )
+     */
+    #[RequestMapping(path: 'get_quota',methods: 'get')]
+    public function getQuota(RequestInterface $request)
+    {
+        $user = $this->authService->getUser('mini');
+        $quota = User::query()->where('id',$user->id)->value('quota');
+        return $this->success(['quota' => $quota]);
+    }
 }
