@@ -73,6 +73,7 @@ class TransOrderService
             Db::commit();
         }catch (\Exception|BusinessException $e){
             Db::rollBack();
+            throw $e;
         }
         return $order;
     }
