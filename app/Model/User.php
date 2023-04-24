@@ -73,7 +73,7 @@ class User extends Model implements AuthenticatableInterface ,JwtSubjectInterfac
     /**
      * The attributes that are mass assignable.
      */
-    protected array $fillable = ['username','password'];
+    protected array $fillable = ['username','password','email','mobile'];
 
     /**
      * The attributes that should be cast to native types.
