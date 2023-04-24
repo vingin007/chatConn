@@ -59,8 +59,6 @@ class Order extends Model
      */
     protected ?string $table = 'orders';
 
-    protected string $primaryKey = 'order_no';
-
     /**
      * The attributes that are mass assignable.
      */
@@ -69,7 +67,7 @@ class Order extends Model
     /**
      * The attributes that should be cast to native types.
      */
-    protected array $casts = ['user_id' => 'integer', 'paid' => 'integer', 'package_id' => 'integer', 'package_quota' => 'integer', 'package_duration' => 'integer', 'status' => 'integer', 'created_at' => 'datetime', 'updated_at' => 'datetime'];
+    protected array $casts = ['order_no' => 'string','user_id' => 'integer', 'paid' => 'integer', 'package_id' => 'integer', 'package_quota' => 'integer', 'package_duration' => 'integer', 'status' => 'integer', 'created_at' => 'datetime', 'updated_at' => 'datetime'];
 
     public function user(): \Hyperf\Database\Model\Relations\BelongsTo
     {
