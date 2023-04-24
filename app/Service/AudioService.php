@@ -151,9 +151,6 @@ class AudioService
             $video->format = $file->getExtension();
             $video->hash = $hash;
             $video->status = 0;
-            if ($user->mobile == '13608303371') {
-                $video->status = 1;
-            }
             $video->save();
         }catch (FilesystemException|NotFoundExceptionInterface|ContainerExceptionInterface $e){
             throw $e;
@@ -332,6 +329,12 @@ class AudioService
         // 保存输出文件
         $en = BASE_PATH.'/storage/trans/'.$store_name;
         $video->save($format, $en);
+        //trans_order
+        $trans_order = TransOrder::query()->where('store_original_store_name',$store_name)->where('status',TransOrder::STATUS_PAID)->first();
+        if ($trans_order){
+            $trans_order->status = TransOrder::STATUS_FINISH;
+            $trans_order->save();
+        }
         // 删除临时音频文件
         @unlink($srt);
         @unlink($srt_ch);

@@ -98,6 +98,97 @@ class MiniWechatController
         return $this->success($result);
     }
     /**
+     * 用户注册并登录
+     *
+     * @OA\Post(
+     *     path="/mini_wechat/reg",
+     *     summary="用户注册并登录",
+     *     tags={"User"},
+     *     @OA\RequestBody(
+     *         @OA\MediaType(
+     *             mediaType="application/x-www-form-urlencoded",
+     *             @OA\Schema(
+     *                 required={"email","password","confirm_password"},
+     *                 @OA\Property(
+     *                     property="email",
+     *                     type="string",
+     *                     description="邮箱",
+     *                 ),
+     *                 @OA\Property(
+     *                     property="password",
+     *                     type="string",
+     *                     format="password",
+     *                     description="密码",
+     *                 ),
+     *                 @OA\Property(
+     *                     property="confirm_password",
+     *                     type="string",
+     *                     format="password",
+     *                     description="确认密码",
+     *                 ),
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="注册成功",
+     *         @OA\JsonContent(
+     *             @OA\Property(
+     *                 property="chat_id",
+     *                 type="integer",
+     *                 description="聊天频道 ID"
+     *             ),
+     *             @OA\Property(
+     *                 property="access_token",
+     *                 type="string",
+     *                 description="JWT 访问令牌"
+     *             ),
+     *             @OA\Property(
+     *                 property="token_type",
+     *                 type="string",
+     *                 description="令牌类型"
+     *             ),
+     *             @OA\Property(
+     *                 property="expire_in",
+     *                 type="integer",
+     *                 description="令牌过期时间（秒）"
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=400,
+     *         description="参数错误或邮箱格式不正确或密码不一致"
+     *     ),
+     *     @OA\Response(
+     *         response=422,
+     *         description="表单验证失败"
+     *     ),
+     *     @OA\Response(
+     *         response=500,
+     *         description="服务器错误"
+     *     )
+     * )
+     */
+    #[RequestMapping(path: 'reg',methods: 'post')]
+    public function reg(RequestInterface $request): ResponseInterface
+    {
+        $email = $request->input('email');
+        $password = $request->input('password');
+        $confirmPassword = $request->input('confirm_password');
+
+        // 验证邮箱格式
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new BusinessException('邮箱格式不正确');
+        }
+
+        // 验证密码确认
+        if ($password !== $confirmPassword) {
+            throw new BusinessException('密码不一致');
+        }
+        $result = $this->authService->registerAndLogin('mini',$email,$password,'',$email);
+        return $this->success($result);
+    }
+    /**
      * @OA\Post(
      *     path="/register",
      *     summary="用户注册",

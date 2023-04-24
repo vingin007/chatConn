@@ -22,6 +22,7 @@
         "google/cloud-speech": "^1.10",
         "google/cloud-storage": "^1.30",
         "google/cloud-text-to-speech": "^1.5",
+        "gregwar/captcha": "^1.1",
         "hhxsv5/php-sse": "~2.0",
         "hyperf-extension/auth": "~3.0.0",
         "hyperf-extension/hashing": "~3.0.0",

@@ -38,7 +38,7 @@ class AuthService
             'password' => Hash::make($password),
             'mobile' => $mobile,
             'email' => $email,
-            'quota' => 5,
+            'quota' => 0,
             'expire_time' => Carbon::now('Asia/Shanghai')->addMonth(),
             'bind_time' => Carbon::now('Asia/Shanghai'),
         ]);

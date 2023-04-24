@@ -52,8 +52,9 @@ class TransOrder extends Model
 {
     const STATUS_UNPAID = 0;
     const STATUS_PAID = 1;
-    const STATUS_FINISH = 2;
-    const STATUS_CANCELLED = 3;
+    const STATUS_TRANS = 2;
+    const STATUS_FINISH = 3;
+    const STATUS_CANCELLED = 4;
     /**
      * The table associated with the model.
      */
@@ -78,6 +79,8 @@ class TransOrder extends Model
                 return '已支付';
             case self::STATUS_FINISH:
                 return '已完成';
+            case self::STATUS_TRANS:
+                return '转录中';
             case self::STATUS_CANCELLED:
                 return '已取消';
             default:

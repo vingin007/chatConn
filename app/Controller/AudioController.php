@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Exception\BusinessException;
+use App\Model\TransOrder;
 use App\Service\AudioService;
+use App\Service\TransOrderService;
 use App\Traits\ApiResponseTrait;
 use Aws\S3\Exception\S3Exception;
 use GuzzleHttp\Psr7\Utils;
@@ -76,9 +78,12 @@ class AudioController
         $user = $this->auth->guard('mini')->user();
         $file = $request->file('file');
         try {
-            $result = $this->audioService->justUpload($user,$file);
-            $this->audioService->deleteFileAfterTime($result['id']);
-            return $this->success($result);
+            $video = $this->audioService->justUpload($user,$file);
+            $minutes = ceil($video->duration/60);
+            $orderAmount = $minutes * TransOrderService::AMOUNT_PER_MINUTE;
+            $video->orderAmount = $orderAmount;
+            $this->audioService->deleteFileAfterTime($video['id']);
+            return $this->success($video);
         } catch (BusinessException $e) {
             return $this->fail($e->getMessage(),$e->getErrorCode());
         }
@@ -166,10 +171,13 @@ class AudioController
             if(empty($file)){
                 throw new BusinessException(400, '文件不存在');
             }
-            if($file->status != 1){
+            $trans_order = TransOrder::query()->where('original_video_store_name',$file->store_name)->where('status',TransOrder::STATUS_PAID)->first();
+            if(!$trans_order){
                 throw new BusinessException(401,'订单尚未支付，无法进行转录操作');
             }
             $result = $this->audioService->uploadAndText($file,$user,$font_size,$margin,$lang,boolval($is_trans));
+            $trans_order->status = TransOrder::STATUS_TRANS;
+            $trans_order->save();
             return $this->success(['message' => '转录任务开始，请稍后']);
         } catch (BusinessException|S3Exception $e) {
             return $this->fail($e->getMessage(),$e->getErrorCode());

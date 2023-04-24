@@ -67,7 +67,6 @@ class TransOrderService
             }
             $user->quota -= $minutes;
             $user->save();
-            $file->status = 1;
             Db::commit();
         }catch (\Exception|BusinessException $e){
             Db::rollBack();
@@ -84,13 +83,11 @@ class TransOrderService
         if ($order->status != Order::STATUS_UNPAID) {
             throw new BusinessException(400, 'Order has been paid or canceled');
         }
-
         $order->status = Order::STATUS_CANCELLED;
 
         if (!$order->save()) {
             throw new BusinessException(400, 'Failed to cancel order');
         }
-        $this->redis->lPush("trans_order:amounts:{$order->order_amount}", $order->amount);
         return $order;
     }
 }

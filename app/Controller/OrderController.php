@@ -121,7 +121,36 @@ class OrderController extends AbstractController
 
         return $this->success($order);
     }
-
+    /**
+     * @OA\Post(
+     *     path="/api/pay",
+     *     summary="提交订单支付",
+     *     description="提交订单支付请求并返回支付链接或二维码等支付信息",
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             @OA\Property(property="order_no", type="string", description="订单编号"),
+     *             @OA\Property(property="type", type="string", description="支付类型"),
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response="200",
+     *         description="支付链接或二维码等支付信息",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="payurl", type="string", description="支付链接"),
+     *             @OA\Property(property="qrcode", type="string", description="支付二维码"),
+     *             @OA\Property(property="urlscheme", type="string", description="支付URL scheme"),
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response="400",
+     *         description="错误响应",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="error", type="string", description="错误信息"),
+     *         )
+     *     )
+     * )
+     */
     public function pay(RequestInterface $request)
     {
         $orderNo = $request->input('order_no');
