@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Exception\BusinessException;
+use App\Middleware\Auth\RefreshTokenMiddleware;
 use App\Model\TransOrder;
 use App\Service\AudioService;
 use App\Service\TransOrderService;
@@ -16,12 +17,15 @@ use Hyperf\Di\Annotation\Inject;
 use GuzzleHttp\Psr7\Stream;
 use Hyperf\Filesystem\FilesystemFactory;
 use Hyperf\HttpServer\Annotation\Controller;
+use Hyperf\HttpServer\Annotation\Middlewares;
 use Hyperf\HttpServer\Annotation\RequestMapping;
 use Hyperf\HttpServer\Contract\RequestInterface;
 use Hyperf\HttpServer\Contract\ResponseInterface;
 use HyperfExtension\Auth\AuthManager;
 use App\Model\Video;
-
+#[Middlewares([
+    RefreshTokenMiddleware::class,
+])]
 #[Controller]
 class AudioController
 {
