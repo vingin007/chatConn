@@ -60,6 +60,12 @@ class TransOrder extends Model
      */
     protected ?string $table = 'trans_orders';
 
+    protected string $primaryKey = 'order_no';
+
+    protected string $keyType = 'string';
+
+    public bool $incrementing = false;
+
     /**
      * The attributes that are mass assignable.
      */

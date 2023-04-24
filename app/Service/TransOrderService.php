@@ -13,6 +13,7 @@ use App\Model\User;
 use App\Model\Video;
 use Aws\S3\Exception\S3Exception;
 use Carbon\Carbon;
+use DateTime;
 use FFMpeg\FFMpeg;
 use FFMpeg\FFProbe;
 use Hyperf\AsyncQueue\Annotation\AsyncQueueMessage;
@@ -54,6 +55,7 @@ class TransOrderService
         Db::beginTransaction();
         try {
             $order = new TransOrder();
+            $order->order_no = $this->generateOrderNo();
             $order->user_id = $user->id;
             $order->original_video_store_name = $file->store_name;
             $order->video_duration = $minutes;
@@ -73,6 +75,19 @@ class TransOrderService
             Db::rollBack();
         }
         return $order;
+    }
+    /**
+     * 生成订单号
+     *
+     * @return string
+     */
+    private function generateOrderNo(): string
+    {
+        $now = new DateTime();
+        $timestamp = $now->format('YmdHis');
+        $random = str_pad(mt_rand(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        return $timestamp . $random;
     }
     #[AsyncQueueMessage(delay: 60 * 5)]
     public function cancelOrder($orderId)
