@@ -30,7 +30,7 @@ class AuthService
      *
      * @return array|string
      */
-    public function registerAndLogin($guard,$username,$password,$mobile = '',$email = ''): array
+    public function registerAndLogin($guard,$username,$password,$mobile,$email): array
     {
         // 创建用户记录
         $user = User::create([

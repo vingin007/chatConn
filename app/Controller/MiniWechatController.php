@@ -37,9 +37,9 @@ class MiniWechatController
      *         description="请求体",
      *         @OA\JsonContent(
      *             @OA\Property(
-     *                 property="mobile",
+     *                 property="email",
      *                 type="string",
-     *                 description="手机号"
+     *                 description="邮箱"
      *             ),
      *             @OA\Property(
      *                 property="password",

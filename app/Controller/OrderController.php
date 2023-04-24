@@ -124,13 +124,14 @@ class OrderController extends AbstractController
     /**
      * @OA\Post(
      *     path="/order/pay",
+     *     tags={"Order"},
      *     summary="提交订单支付",
+     *     security={{"bearerAuth":{}}},
      *     description="提交订单支付请求并返回支付链接或二维码等支付信息",
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(
-     *             @OA\Property(property="order_no", type="string", description="订单编号"),
-     *             @OA\Property(property="type", type="string", description="支付类型"),
+     *             @OA\Property(property="order_no", type="string", description="订单编号")
      *         )
      *     ),
      *     @OA\Response(
