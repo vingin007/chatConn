@@ -63,6 +63,8 @@ class Order extends Model
 
     protected string $keyType = 'string';
 
+    public bool $incrementing = false;
+
     /**
      * The attributes that are mass assignable.
      */
