@@ -59,10 +59,10 @@ class PaymentCallbackController
             // 更新订单状态等业务逻辑
             $this->orderService->_payOrder($params['out_trade_no'],$params['trade_no'],$params['type'],$params['money']);
             // 返回success表示接收成功
-            return $this->response->raw('success');
+            return $response->raw('success');
         } else {
             // 签名验证失败，返回错误信息
-            return $this->response->raw('invalid sign');
+            return $response->raw('invalid sign');
         }
     }
 }
