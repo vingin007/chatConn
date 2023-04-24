@@ -123,7 +123,7 @@ class OrderController extends AbstractController
     }
     /**
      * @OA\Post(
-     *     path="/api/pay",
+     *     path="/order/pay",
      *     summary="提交订单支付",
      *     description="提交订单支付请求并返回支付链接或二维码等支付信息",
      *     @OA\RequestBody(
@@ -151,10 +151,11 @@ class OrderController extends AbstractController
      *     )
      * )
      */
+    #[RequestMapping(path: 'pay', methods: 'post')]
     public function pay(RequestInterface $request)
     {
         $orderNo = $request->input('order_no');
-        $type = $request->input('type');
+        $type = $request->input('type','wxpay');
         try {
             $order = Order::query()->where('order_no',$orderNo)->firstOrFail();
             if ($order->status !== Order::STATUS_UNPAID) {
@@ -166,7 +167,8 @@ class OrderController extends AbstractController
                 'notify_url' => 'http://api.talksmart.cc/payment_callback/notify',
                 'name' => $order->package_name,
                 'money' => $order->amount,
-                'clientip' => $request->getServerParams()['remote_addr'] ?? null
+                'clientip' => $request->getServerParams()['remote_addr'] ?? null,
+                'device' => 'wechat'
             ];
             $order = $this->paymentService->createPayment($params);
         } catch (BusinessException|ModelNotFoundException $e) {

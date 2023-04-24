@@ -6,13 +6,13 @@ use GuzzleHttp\Exception\GuzzleException;
 class PaymentService
 {
     private $apiUrl = 'https://codepay.9xo.top/mapi.php';
-    private $pid = '1027'; // 商户ID
-    private $key = 'N273073Z20FbWH6Hm2NAH6PbnM6w4HFS'; // 商户密钥
+    private $pid; // 商户ID
+    private $key; // 商户密钥
 
-    public function __construct(int $pid, string $key)
+    public function __construct()
     {
-        $this->pid = 'N273073Z20FbWH6Hm2NAH6PbnM6w4HFS';
-        $this->key = '1027';
+        $this->key = 'N273073Z20FbWH6Hm2NAH6PbnM6w4HFS';
+        $this->pid = '1027';
     }
 
     // 其他方法

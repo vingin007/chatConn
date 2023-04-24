@@ -11,6 +11,7 @@ use App\Model\Order;
 use App\Model\PaymentRecord;
 use App\Model\User;
 use Carbon\Carbon;
+use DateTime;
 use Hyperf\AsyncQueue\Driver\DriverFactory;
 use Hyperf\AsyncQueue\Driver\DriverInterface;
 use Hyperf\Di\Annotation\Inject;
@@ -39,8 +40,8 @@ class OrderService
     public function generateOrder(Package $package, User $user)
     {
         $order = new Order();
-        $order->order_no = Str::random(20);
-        $order->payment_method = '';
+        $order->order_no = $this->generateOrderNo();
+        $order->payment_method = 'wechat';
         $order->paid = false;
         $order->user_id = $user->id;
         $order->package_id = $package->id;
@@ -57,7 +58,19 @@ class OrderService
         $this->driver->push(new CancelOrderJob($order->order_no),60*10);
         return $order;
     }
+    /**
+     * 生成订单号
+     *
+     * @return string
+     */
+    private function generateOrderNo(): string
+    {
+        $now = new DateTime();
+        $timestamp = $now->format('YmdHis');
+        $random = str_pad(mt_rand(0, 999999), 6, '0', STR_PAD_LEFT);
 
+        return $timestamp . $random;
+    }
     public function payOrder($amount,$sign,$timestamp)
     {
         $secret = 'woshigecaigou';
