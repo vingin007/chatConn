@@ -130,9 +130,6 @@ class TransOrderController
     public function create(RequestInterface $request, ResponseInterface $response)
     {
         $file_id = $request->input('file_id', 0);
-        if($this->user->level != 99){
-            return $this->fail('您没有开通该功能',401);
-        }
         try {
             $order = $this->transOrderService->generateOrder($file_id,$this->user);
         }catch (\Exception|BusinessException $e){
