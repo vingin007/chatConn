@@ -46,7 +46,8 @@ class TransOrderService
     {
         $file = Video::query()->where('id', $file_id)->first();
         $minutes = ceil($file->duration/60);
-        if($user->quota < $minutes){
+        $quota = User::query()->where('id', $user->id)->value('quota');
+        if($quota < $minutes){
             throw new BusinessException(400, '您的剩余时长不足，请充值后再试');
         }
         $orderAmount = $minutes * self::AMOUNT_PER_MINUTE;
