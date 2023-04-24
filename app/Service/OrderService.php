@@ -45,7 +45,7 @@ class OrderService
     {
         $order = new Order();
         $order->order_no = $this->generateOrderNo();
-        $order->payment_method = 'wechat';
+        $order->payment_method = 1;
         $order->paid = false;
         $order->user_id = $user->id;
         $order->package_id = $package->id;
@@ -127,7 +127,6 @@ class OrderService
         }
         $this->logger->info($orderNo.'--'.$trade_no.'--'.$type.'--'.$money);
         try {
-            $order->payment_method = $type;
             $order->trade_no = $trade_no;
             $order->status = Order::STATUS_PAID;
             $order->paid = true;
