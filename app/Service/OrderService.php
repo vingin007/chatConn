@@ -137,7 +137,7 @@ class OrderService
             $user->save();
             $this->eventDispatcher->dispatch(new OrderPaid($order));
         } catch (\Exception $exception){
-            throw new BusinessException(400, '支付失败');
+            throw new BusinessException(400, $exception->getMessage());
         }
         return $order;
     }
