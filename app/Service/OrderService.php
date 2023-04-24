@@ -34,10 +34,11 @@ class OrderService
     #[Inject]
     protected EventDispatcherInterface $eventDispatcher;
 
-    public function __construct(DriverFactory $driverFactory)
+    public function __construct(DriverFactory $driverFactory,LoggerFactory $loggerFactory)
     {
         $this->redis = di()->get(Redis::class);
         $this->driver = $driverFactory->get('default');
+        $this->logger = $loggerFactory->get('log', 'default');
     }
 
     public function generateOrder(Package $package, User $user)
@@ -113,7 +114,7 @@ class OrderService
         return $order;
     }
 
-    public function _payOrder($orderNo,$trade_no,$type,$money,LoggerFactory $loggerFactory)
+    public function _payOrder($orderNo,$trade_no,$type,$money)
     {
         $order = Order::query()->where('order_no', $orderNo)
             ->where('status', Order::STATUS_UNPAID)
@@ -124,7 +125,6 @@ class OrderService
         if($money != $order->amount){
             throw new BusinessException(400, '支付金额不正确');
         }
-        $this->logger = $loggerFactory->get('log', 'default');
         $this->logger->info($orderNo.'--'.$trade_no.'--'.$type.'--'.$money);
         try {
             $order->payment_method = $type;
