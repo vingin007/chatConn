@@ -65,6 +65,7 @@ class TransOrderService
             $order->original_video_id = $file_id;
             $order->video_size = $file->size;
             $order->status = 1;
+            $order->paid_time = Carbon::now('Asia/Shanghai');
             if (!$order->save()) {
                    throw new BusinessException(400, '创建订单失败');
             }
