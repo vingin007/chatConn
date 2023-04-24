@@ -15,9 +15,11 @@ use DateTime;
 use Hyperf\AsyncQueue\Driver\DriverFactory;
 use Hyperf\AsyncQueue\Driver\DriverInterface;
 use Hyperf\Di\Annotation\Inject;
+use Hyperf\Logger\LoggerFactory;
 use Hyperf\Redis\Redis;
 use Hyperf\Utils\Str;
 use Psr\EventDispatcher\EventDispatcherInterface;
+use Psr\Log\LoggerInterface;
 
 class OrderService
 {
@@ -26,6 +28,7 @@ class OrderService
     const ORDER_AMOUNT_MAX = 0.09; // 订单最大金额
 
     protected $redis;
+    protected LoggerInterface $logger;
 
     protected DriverInterface $driver;
     #[Inject]
@@ -110,7 +113,7 @@ class OrderService
         return $order;
     }
 
-    public function _payOrder($orderNo,$trade_no,$type,$money)
+    public function _payOrder($orderNo,$trade_no,$type,$money,LoggerFactory $loggerFactory)
     {
         $order = Order::query()->where('order_no', $orderNo)
             ->where('status', Order::STATUS_UNPAID)
@@ -121,6 +124,8 @@ class OrderService
         if($money != $order->amount){
             throw new BusinessException(400, '支付金额不正确');
         }
+        $this->logger = $loggerFactory->get('log', 'default');
+        $this->logger->info($orderNo.'--'.$trade_no.'--'.$type.'--'.$money);
         try {
             $order->payment_method = $type;
             $order->trade_no = $trade_no;
