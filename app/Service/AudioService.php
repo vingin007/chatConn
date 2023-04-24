@@ -330,7 +330,7 @@ class AudioService
         $en = BASE_PATH.'/storage/trans/'.$store_name;
         $video->save($format, $en);
         //trans_order
-        $trans_order = TransOrder::query()->where('store_original_store_name',$store_name)->where('status',TransOrder::STATUS_PAID)->first();
+        $trans_order = TransOrder::query()->where('original_video_store_name',$store_name)->where('status',TransOrder::STATUS_PAID)->first();
         if ($trans_order){
             $trans_order->status = TransOrder::STATUS_FINISH;
             $trans_order->save();
