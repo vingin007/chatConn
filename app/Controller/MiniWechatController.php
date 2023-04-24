@@ -31,7 +31,7 @@ class MiniWechatController
      *     summary="用户登录",
      *     description="使用手机号和密码进行登录",
      *     operationId="login",
-     *     tags={"Authentication"},
+     *     tags={"User"},
      *     @OA\RequestBody(
      *         required=true,
      *         description="请求体",
@@ -191,10 +191,10 @@ class MiniWechatController
     /**
      * @OA\Post(
      *     path="/register",
-     *     summary="用户注册",
+     *     summary="用户注册(聊天注册流程)",
      *     description="用户注册流程",
      *     operationId="register",
-     *     tags={"用户管理"},
+     *     tags={"User"},
      *     @OA\RequestBody(
      *         description="请求体",
      *         required=true,

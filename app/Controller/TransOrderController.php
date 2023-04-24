@@ -40,6 +40,7 @@ class TransOrderController
      *     summary="Get list of user's trans orders",
      *     description="Returns paginated list of trans orders",
      *     tags={"Trans Orders"},
+     *     security={{"bearerAuth":{}}},
      *     @OA\Parameter(
      *         name="start_time",
      *         in="query",
@@ -71,9 +72,6 @@ class TransOrderController
      *             @OA\Property(property="total", type="integer")
      *         )
      *     ),
-     *     security={
-     *         {"bearerAuth": {}}
-     *     }
      * )
      */
     #[RequestMapping(path: 'lists',methods: 'get')]
@@ -106,6 +104,7 @@ class TransOrderController
      *     path="/trans_order/create",
      *     summary="Create a new transcription order",
      *     tags={"Trans Orders"},
+     *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         required=true,
      *         @OA\JsonContent(

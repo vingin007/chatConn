@@ -40,6 +40,7 @@ class AudioController
      *     summary="Upload audio file",
      *     description="Uploads an audio file and returns the result.",
      *     tags={"Audio"},
+     *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         description="Audio file to upload",
      *         required=true,
@@ -98,6 +99,7 @@ class AudioController
      *     summary="Transcribe audio file",
      *     description="将上传后并且生成订单的视频转码",
      *     tags={"Audio"},
+     *     security={{"bearerAuth":{}}},
      *     @OA\RequestBody(
      *         description="Request parameters",
      *         required=true,
