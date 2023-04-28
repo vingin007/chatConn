@@ -177,4 +177,39 @@ class OrderController extends AbstractController
         }
         return $this->success($order);
     }
+    /**
+     * @OA\Get(
+     *     path="/order/detail",
+     *     summary="获取订单详情",
+     *     description="根据订单编号获取订单详情",
+     *     tags={"Order"},
+     *     @OA\Parameter(
+     *         name="order_no",
+     *         in="query",
+     *         required=true,
+     *         description="订单编号",
+     *         @OA\Schema(type="string")
+     *     ),
+     *     @OA\Response(
+     *         response="200",
+     *         description="成功获取订单详情",
+     *         @OA\JsonContent(ref="#/components/schemas/Order")
+     *     ),
+     *     @OA\Response(
+     *         response="404",
+     *         description="订单不存在",
+     *         @OA\JsonContent(ref="#/components/schemas/Error")
+     *     )
+     * )
+     */
+    #[RequestMapping(path: 'detail',methods: 'get')]
+    public function detail(RequestInterface $request)
+    {
+        $order_id = $request->input('order_no');
+        $order = Order::query()->where('order_no',$order_id)->first();
+        if (empty($order)){
+            return $this->fail('订单不存在',404);
+        }
+        return $this->success($order);
+    }
 }
