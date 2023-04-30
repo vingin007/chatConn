@@ -166,6 +166,7 @@ class OrderController extends AbstractController
                 'type' => $type,
                 'out_trade_no' => $orderNo,
                 'notify_url' => 'http://api.talksmart.cc/payment_callback/notify',
+                'return_url' => 'http://api.talksmart.cc/payment_callback/return',
                 'name' => $order->package_name,
                 'money' => $order->amount,
                 'clientip' => $request->getServerParams()['remote_addr'] ?? null,
