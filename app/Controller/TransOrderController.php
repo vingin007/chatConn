@@ -162,6 +162,7 @@ class TransOrderController
      *     )
      * )
      */
+    #[RequestMapping(path: 'detail',methods: 'get')]
     public function detail(RequestInterface $request,ResponseInterface $response)
     {
         $trans_order_id = $request->input('order_no');
